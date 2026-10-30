@@ -1,21 +1,20 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
+<html lang="zh-CN"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>潮汐纪元 · TIDE EPOCH</title>
+<title>黑雨 · BALCK RAIN</title>
 <meta name="description" content="一个关于深海、鲸歌与失落地表的世界">
 <style>
 /* ============ 设计变量：想换配色只改这里 ============ */
 :root{
-  --bg:#05090f;
-  --bg-2:#0a1420;
-  --ink:#e8eef6;
-  --ink-dim:#93a6bb;
-  --gold:#d8b26a;
-  --cyan:#6fd6ff;
-  --line:rgba(160,200,255,.14);
-  --glass:rgba(12,24,38,.42);
+  --bg:#0f0505;
+  --bg-2:#790012;
+  --ink:#f6abab5d;
+  --ink-dim:#ffe2f2;
+  --gold:#69561d;
+  --cyan:#c92323;
+  --line:rgba(255, 0, 0, 0.14);
+  --glass:rgba(52, 0, 0, 0.566);
   --serif:"Noto Serif SC","Songti SC","Source Han Serif SC",Georgia,serif;
   --sans:"Inter","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
   --mono:"JetBrains Mono","SFMono-Regular",Consolas,monospace;
@@ -43,7 +42,7 @@ body::after{
   transition:background .5s,border-color .5s,backdrop-filter .5s;
 }
 .nav.solid{
-  background:rgba(6,12,20,.55);backdrop-filter:blur(18px) saturate(140%);
+  background:rgba(65, 3, 11, 0.749);backdrop-filter:blur(18px) saturate(140%);
   border-bottom:1px solid var(--line);
 }
 .brand{display:flex;align-items:center;gap:12px;font-family:var(--mono);font-size:12px;letter-spacing:.22em;color:var(--ink-dim)}
@@ -60,9 +59,9 @@ body::after{
 .hero-bg{
   position:absolute;inset:-10%;z-index:0;
   background:
-    radial-gradient(60% 50% at 70% 20%,rgba(40,120,190,.35),transparent 70%),
+    radial-gradient(60% 50% at 70% 20%,rgba(255, 0, 0, 0.347),transparent 70%),
     radial-gradient(50% 40% at 20% 80%,rgba(216,178,106,.14),transparent 70%),
-    linear-gradient(180deg,#08121e 0%,#05090f 70%);
+    linear-gradient(180deg,#1e080b90 0%,#0f050690 70%);
   background-size:cover;background-position:center;
   will-change:transform;
 }
@@ -82,7 +81,7 @@ body::after{
 .hero h1{
   font-family:var(--serif);font-weight:600;
   font-size:clamp(48px,10vw,148px);line-height:.95;letter-spacing:.06em;
-  text-shadow:0 0 80px rgba(111,214,255,.18);
+  text-shadow:0 0 80px rgba(255, 154, 111, 0.18);
 }
 .hero h1 span{
   display:block;font-family:var(--mono);font-weight:300;
@@ -194,8 +193,8 @@ footer{
 </head>
 <body>
 
-<nav class="nav" id="nav">
-  <div class="brand"><span class="dot"></span><b>潮汐纪元</b><span>TIDE EPOCH</span></div>
+<nav class="nav solid" id="nav">
+  <div class="brand"><span class="dot"></span><b>黑雨</b><span>BLACK RAIN</span></div>
   <ul>
     <li><a href="#world">世界</a></li>
     <li><a href="#cast">角色</a></li>
@@ -205,93 +204,93 @@ footer{
 </nav>
 
 <header class="hero">
-  <div class="hero-bg" id="heroBg"></div>
+  <div class="hero-bg has-image" id="heroBg" style="--hero-img: url(&quot;assets/hero.jpg&quot;); transform: translate3d(0px, 167px, 0px);"></div>
   <div class="hero-inner">
-    <div class="kicker">A World Beneath the Tide</div>
-    <h1>潮汐纪元<span>TIDE EPOCH</span></h1>
-    <p>地表沉没后的第三百年，人类在鲸背上建起了最后一座城。<br>而真正统治这颗星球的，是它们的梦。</p>
+    <div class="kicker">A World Beneath the Rain</div>
+    <h1>黑雨<span>BALCK RAIN</span></h1>
+    <p>因为《天启日》六年没有出续集所以搞了一个OC世界观<br>当前版本：“异轨战略”</p>
   </div>
-  <div class="scroll-hint"><span>SCROLL</span><i></i></div>
+  <div class="scroll-hint"><span>SCROLL DOWN</span><i></i></div>
 </header>
 
 <section id="world">
-  <div class="section-head reveal">
-    <span class="idx">01</span><h2>世界</h2><span class="en">The Drowned World</span>
+  <div class="section-head reveal in">
+    <span class="idx">01</span><h2>世界</h2><span class="en">THE SURVIVED WORLD</span>
   </div>
   <div class="about">
-    <div class="copy reveal">
-      <p>地表九成被海水覆盖。仅存的陆地是三座火山岛，人们叫它们<strong>「锚点」</strong>。岛与岛之间没有航线，只有鲸群迁徙的路。</p>
-      <p>鲸歌能改变局部洋流，也能让人做梦。梦是这个世界唯一的货币——捕梦者从鲸的梦里提炼<strong>「潮晶」</strong>，用来驱动城市、点亮灯塔、换取一口淡水。</p>
-      <p>有一条铁律：<strong>任何人不能在鲸背上说谎</strong>。谎言会让鲸下沉。</p>
+    <div class="copy reveal in">
+      <p>自天启日之后，人类只能聚居在一片城邦。世界各处都可能下<strong>「黑雨」</strong>。而人类存活所依赖的政体也叫<strong>黑雨</strong>。</p>
+      
+      
       <ul class="rule-list">
-        <li><b>I</b><span>鲸歌可改洋流，亦可入梦</span></li>
-        <li><b>II</b><span>梦是货币，潮晶是它的结晶</span></li>
-        <li><b>III</b><span>鲸背之上，谎言即沉没</span></li>
+        <li><b>I</b><span>黑雨会引发现实扭曲</span></li>
+        <li><b>II</b><span>黑雨可以带来灾难</span></li>
+        <li><b>III</b><span>无论哪一个黑雨都有上述特性</span></li>
       </ul>
     </div>
-    <figure class="figure glass reveal" data-delay="1">
+    <figure class="figure glass reveal in" data-delay="1">
       <img src="assets/world.jpg" alt="世界概念图" onerror="this.style.display='none'">
     </figure>
   </div>
 </section>
 
 <section id="cast">
-  <div class="section-head reveal">
+  <div class="section-head reveal in">
     <span class="idx">02</span><h2>角色</h2><span class="en">Cast</span>
   </div>
   <div class="cards">
-    <article class="card glass reveal">
+    <article class="card glass reveal in">
       <span class="tag">PROTAGONIST</span>
       <img src="assets/char-1.jpg" alt="主角" onerror="this.style.display='none'">
-      <div class="meta"><h3>未命名</h3><p>最年轻的捕梦者。想找到失踪的姐姐，却分不清自己的梦和别人的梦。</p></div>
+      <div class="meta"><h3>空着</h3><p>由你们书写</p></div>
     </article>
-    <article class="card glass reveal" data-delay="1">
+    <article class="card glass reveal in" data-delay="1">
       <span class="tag">MENTOR</span>
-      <img src="assets/char-2.jpg" alt="老鲸歌者" onerror="this.style.display='none'">
-      <div class="meta"><h3>老鲸歌者</h3><p>知道世界真相的人。他其实是第一头学会人语的鲸。</p></div>
+      <img src="assets/char-2.jpg" alt="老鲸歌者" onerror="this.style.display='none'" style="display: none;">
+      <div class="meta"><h3>也空着</h3><p>你们快写吧</p></div>
     </article>
-    <article class="card glass reveal" data-delay="2">
+    <article class="card glass reveal in" data-delay="2">
       <span class="tag">ANTAGONIST</span>
-      <img src="assets/char-3.jpg" alt="议会代表" onerror="this.style.display='none'">
-      <div class="meta"><h3>议会代表</h3><p>秩序优先。与主角互相利用，最终反目。</p></div>
+      <img src="assets/char-3.jpg" alt="议会代表" onerror="this.style.display='none'" style="display: none;">
+      <div class="meta"><h3>我的意思是</h3><p>画画也可以</p></div>
     </article>
   </div>
 </section>
 
 <section id="places">
-  <div class="section-head reveal">
+  <div class="section-head reveal in">
     <span class="idx">03</span><h2>地点</h2><span class="en">Locations</span>
   </div>
   <div class="places">
-    <figure class="place wide glass reveal">
+    <figure class="place wide glass reveal in">
       <img src="assets/place-1.jpg" alt="烬岛" onerror="this.style.display='none'">
-      <figcaption>烬岛<small>ANCHOR · EMBER</small></figcaption>
+      <figcaption>核心区<small>ANCHOR · EMBER</small></figcaption>
     </figure>
-    <figure class="place glass reveal" data-delay="1">
-      <img src="assets/place-2.jpg" alt="盐岛" onerror="this.style.display='none'">
-      <figcaption>盐岛<small>ANCHOR · SALT</small></figcaption>
+    <figure class="place glass reveal in" data-delay="1">
+      <img src="assets/place-2.jpg" alt="盐岛" onerror="this.style.display='none'" style="display: none;">
+      <figcaption>周围城区（次核心区）<small>ANCHOR · SALT</small></figcaption>
     </figure>
-    <figure class="place glass reveal" data-delay="2">
-      <img src="assets/place-3.jpg" alt="静岛" onerror="this.style.display='none'">
-      <figcaption>静岛<small>ANCHOR · SILENCE</small></figcaption>
+    <figure class="place glass reveal in" data-delay="2">
+      <img src="assets/place-3.jpg" alt="静岛" onerror="this.style.display='none'" style="display: none;">
+      <figcaption>裂隙及其附近<small>ANCHOR · SILENCE</small></figcaption>
     </figure>
-    <figure class="place wide glass reveal" data-delay="3">
-      <img src="assets/place-4.jpg" alt="长歌" onerror="this.style.display='none'">
-      <figcaption>鲸背城「长歌」<small>THE WHALE CITY</small></figcaption>
+    <figure class="place wide glass reveal in" data-delay="3">
+      <img src="assets/place-4.jpg" alt="长歌" onerror="this.style.display='none'" style="display: none;">
+      <figcaption>郊外未知区域<small>THE WHALE CITY</small></figcaption>
     </figure>
   </div>
 </section>
 
 <section id="timeline">
-  <div class="section-head reveal">
-    <span class="idx">04</span><h2>时间线</h2><span class="en">Chronicle</span>
+  <div class="section-head reveal in">
+    <span class="idx">04</span><h2>时间线（这里还没写完）</h2><span class="en">TIMELINE</span>
   </div>
   <div class="timeline">
-    <div class="tl-item reveal"><time>潮历 0 年</time><h4>大退潮</h4><p>地表沉没，人类失去大陆。</p></div>
-    <div class="tl-item reveal"><time>潮历 47 年</time><h4>第一座鲸背城落成</h4><p>人类学会与鲸共生，城市开始移动。</p></div>
-    <div class="tl-item reveal"><time>潮历 210 年</time><h4>捕梦者行会成立</h4><p>梦被定价，潮晶成为硬通货。</p></div>
-    <div class="tl-item reveal"><time>潮历 296 年</time><h4>长歌开口</h4><p>一头蓝鲸第一次用人语说出了自己的名字。</p></div>
-    <div class="tl-item reveal"><time>潮历 300 年</time><h4>现在</h4><p>最后一次退潮正在逼近。</p></div>
+    <div class="tl-item reveal in"><time>潮历 0 年</time><h4>大退潮</h4><p>地表沉没，人类失去大陆。</p></div>
+    <div class="tl-item reveal in"><time>潮历 47 年</time><h4>第一座鲸背城落成</h4><p>人类学会与鲸共生，城市开始移动。</p></div>
+    <div class="tl-item reveal in"><time>潮历 210 年</time><h4>捕梦者行会成立</h4><p>梦被定价，潮晶成为硬通货。</p></div>
+    <div class="tl-item reveal in"><time>潮历 296 年</time><h4>长歌开口</h4><p>一头蓝鲸第一次用人语说出了自己的名字。</p></div>
+    <div class="tl-item reveal in"><time>潮历 300 年</time><h4>现在</h4><p>最后一次退潮正在逼近。</p></div>
   </div>
 </section>
 
@@ -330,5 +329,6 @@ probe.onload = () => {
 };
 probe.src = 'assets/hero.jpg';
 </script>
-</body>
-</html>
+
+
+</body></html>
