@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>黑雨 · BALCK RAIN</title>
-<meta name="description" content="一个关于深海、鲸歌与失落地表的世界">
+<meta name="description" content="一个关于失落地表的世界">
 <style>
 /* ============ 设计变量：想换配色只改这里 ============ */
 :root{
@@ -33,13 +33,42 @@ body::after{
   content:"";position:fixed;inset:0;pointer-events:none;z-index:60;opacity:.035;
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
 }
+/* 播放/暂停按钮：固定在右上角，工业风圆形 */
+.bgm-toggle {
+  position: fixed;
+  top: clamp(16px, 2vw, 104px);
+  right: clamp(20px, 4vw, 24px);
+  z-index: 95; /* 高于顶栏，确保可点击 */
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: rgba(15, 5, 5, 0.6);
+  backdrop-filter: blur(8px);
+  color: var(--ink-dim);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: color 0.3s, border-color 0.3s, background 0.3s;
+}
 
+.bgm-toggle:hover {
+  color: var(--ink);
+  border-color: rgba(201, 35, 35, 0.45);
+  background: rgba(52, 0, 0, 0.7);
+}
+
+/* 图标切换：默认显示“播放”，播放中显示“暂停” */
+.bgm-toggle .icon-pause { display: none; }
+.bgm-toggle.playing .icon-play { display: none; }
+.bgm-toggle.playing .icon-pause { display: block; }
 /* ============ 顶部玻璃导航 ============ */
 .nav{
   position:fixed;inset:0 0 auto 0;z-index:50;display:flex;align-items:center;
   justify-content:space-between;padding:18px clamp(20px,4vw,56px);
   background:transparent;border-bottom:1px solid transparent;
   transition:background .5s,border-color .5s,backdrop-filter .5s;
+
 }
 .nav.solid{
   background:rgba(65, 3, 11, 0.749);backdrop-filter:blur(18px) saturate(140%);
@@ -101,7 +130,7 @@ body::after{
 @keyframes drop{0%{transform:scaleY(.2);transform-origin:top;opacity:0}40%{opacity:1}100%{transform:scaleY(1);transform-origin:top;opacity:0}}
 
 /* ============ 通用版块 ============ */
-section{position:relative;padding:clamp(90px,12vh,160px) clamp(20px,6vw,90px)}
+section{scroll-margin-top:96px;position:relative;padding:clamp(90px,12vh,160px) clamp(20px,6vw,90px)}
 .section-head{display:flex;align-items:flex-end;gap:24px;margin-bottom:clamp(40px,6vh,72px);border-bottom:1px solid var(--line);padding-bottom:22px}
 .section-head .idx{font-family:var(--mono);font-size:12px;letter-spacing:.2em;color:var(--gold)}
 .section-head h2{font-family:var(--serif);font-weight:500;font-size:clamp(26px,3.6vw,44px);letter-spacing:.08em}
@@ -130,7 +159,7 @@ section{position:relative;padding:clamp(90px,12vh,160px) clamp(20px,6vw,90px)}
 .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2.4vw,30px)}
 .card{position:relative;overflow:hidden;border-radius:2px;isolation:isolate;cursor:pointer}
 .card img{width:100%;aspect-ratio:3/4;object-fit:cover;transition:transform 1s cubic-bezier(.16,1,.3,1),filter .6s}
-.card::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(4,8,14,.92));z-index:1}
+.card::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(4,8,14,.92));z-index:1;pointer-events:none}
 .card .meta{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:24px;transform:translateY(8px);transition:transform .55s}
 .card:hover img{transform:scale(1.06)}
 .card:hover .meta{transform:translateY(0)}
@@ -154,6 +183,11 @@ section{position:relative;padding:clamp(90px,12vh,160px) clamp(20px,6vw,90px)}
   font-family:var(--serif);letter-spacing:.1em;
 }
 .place figcaption small{display:block;font-family:var(--mono);font-size:10px;color:var(--gold);letter-spacing:.3em;margin-top:6px}
+.place:hover img{transform:scale(1.05)}
+
+/* 地点卡片整图可点击（同角色卡逻辑） */
+.place a{display:block;width:100%;height:100%}
+.place a:focus-visible{outline:1px solid var(--gold);outline-offset:-2px}
 
 /* 时间线 */
 .timeline{position:relative;padding-left:34px}
@@ -189,9 +223,85 @@ footer{
   *{animation:none!important;transition:none!important}
   .reveal{opacity:1;transform:none}
 }
+
+/* ===== 玻璃雨层（重做：参考 222.html） ===== */
+.glass-sheen{
+  position:fixed;inset:0;z-index:41;pointer-events:none;mix-blend-mode:screen;
+  background:
+    linear-gradient(115deg,rgba(255,255,255,.045) 0%,rgba(255,255,255,.012) 28%,transparent 42%),
+    radial-gradient(ellipse at 18% 0%,rgba(255,150,150,.05),transparent 55%),
+    radial-gradient(ellipse at 85% 100%,rgba(180,20,30,.10),transparent 60%);
+}
+.vignette{
+  position:fixed;inset:0;z-index:39;pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 52%,rgba(0,0,0,.5) 100%);
+}
+
+/* 时间线节点：黑色雨滴 + 红边 */
+
+.tl-item::after{
+  content:"";position:absolute;left:-32px;top:-4px;width:3px;height:7px;
+  border-radius:50% 50% 0 0;background:linear-gradient(180deg,transparent,rgba(229,31,42,.85));
+}
+
+/* 浮现：1999 式遮罩上推 + 轻微缩放，文字逐行错开 */
+.reveal{
+  opacity:0;transform:translate3d(0,34px,0) scale(.99);clip-path:inset(0 0 100% 0);
+  transition:opacity 1.05s cubic-bezier(.16,1,.3,1),transform 1.05s cubic-bezier(.16,1,.3,1),clip-path 1.15s cubic-bezier(.16,1,.3,1);
+}
+.reveal.in{opacity:1;transform:none;clip-path:inset(0 0 -8% 0)}
+.about .copy.reveal{transform:translate3d(-46px,20px,0) scale(.99)}
+.about .figure.reveal{transform:translate3d(46px,20px,0) scale(.99)}
+.cards .card{clip-path:inset(0 0 100% 0)}
+.cards .card:nth-child(1){transform:translate3d(-38px,16px,0)}
+.cards .card:nth-child(2){transform:translate3d(0,38px,0);transition-delay:.1s}
+.cards .card:nth-child(3){transform:translate3d(38px,16px,0);transition-delay:.2s}
+.cards .card.in{transform:none;clip-path:inset(0 0 -8% 0)}
+.places figure:nth-child(1){transform:translate3d(-38px,16px,0)}
+.places figure:nth-child(2){transform:translate3d(38px,16px,0);transition-delay:.08s}
+.places figure:nth-child(3){transform:translate3d(-38px,16px,0);transition-delay:.16s}
+.places figure:nth-child(4){transform:translate3d(38px,16px,0);transition-delay:.24s}
+.places figure.in{transform:none}
+.timeline .tl-item{transform:translate3d(-30px,10px,0)}
+.timeline .tl-item.in{transform:none}
+.timeline .tl-item:nth-child(2){transition-delay:.07s}
+.timeline .tl-item:nth-child(3){transition-delay:.14s}
+.timeline .tl-item:nth-child(4){transition-delay:.21s}
+.timeline .tl-item:nth-child(5){transition-delay:.28s}
+
+/* 文案逐行浮现 */
+.about .copy p,.about .rule-list li{opacity:0;transform:translateY(16px);
+  transition:opacity .85s cubic-bezier(.16,1,.3,1),transform .85s cubic-bezier(.16,1,.3,1)}
+.about .copy.in p,.about .copy.in .rule-list li{opacity:1;transform:none}
+.about .copy.in p:nth-of-type(1){transition-delay:.06s}
+.about .copy.in p:nth-of-type(2){transition-delay:.14s}
+.about .copy.in .rule-list li:nth-child(1){transition-delay:.22s}
+.about .copy.in .rule-list li:nth-child(2){transition-delay:.3s}
+.about .copy.in .rule-list li:nth-child(3){transition-delay:.38s}
+
+/* 图片缓慢落定 */
+.about .figure img,.cards .card img,.places figure img{transform:scale(1.07);
+  transition:transform 1.5s cubic-bezier(.16,1,.3,1),filter .6s}
+.about .figure.in img,.cards .card.in img,.places figure.in img{transform:scale(1)}
+
+/* 每节右下角的「查看详情」 */
+.section-cta{
+  position:absolute;right:clamp(20px,6vw,90px);bottom:clamp(26px,4vh,50px);
+  display:inline-flex;align-items:center;gap:10px;padding:11px 20px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--ink);border:1px solid rgba(216,178,106,.45);border-radius:2px;
+  background:transparent;cursor:pointer;text-decoration:none;
+  transition:background .42s cubic-bezier(.16,1,.3,1),color .42s,border-color .42s,transform .42s;
+}
+.section-cta::after{content:"→";font-size:13px;letter-spacing:0;transition:transform .42s}
+.section-cta:hover{background:var(--ink);color:#0b0a0c;border-color:var(--ink);transform:translateY(-2px)}
+.section-cta:hover::after{transform:translateX(5px)}
+
 </style>
 </head>
 <body>
+<div class="glass-sheen" aria-hidden="true"></div>
+<div class="vignette" aria-hidden="true"></div>
 
 <nav class="nav solid" id="nav">
   <div class="brand"><span class="dot"></span><b>黑雨</b><span>BLACK RAIN</span></div>
@@ -201,6 +311,15 @@ footer{
     <li><a href="#places">地点</a></li>
     <li><a href="#timeline">时间线</a></li>
   </ul>
+  
+  <button id="bgm-toggle" class="bgm-toggle" aria-label="播放或暂停背景音乐">
+  <svg class="icon-play" viewBox="0 0 24 24" width="18" height="18">
+    <path d="M8 5v14l11-7z" fill="currentColor"/>
+  </svg>
+  <svg class="icon-pause" viewBox="0 0 24 24" width="18" height="18">
+    <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" fill="currentColor"/>
+  </svg>
+</button>
 </nav>
 
 <header class="hero">
@@ -208,17 +327,17 @@ footer{
   <div class="hero-inner">
     <div class="kicker">A World Beneath the Rain</div>
     <h1>黑雨<span>BALCK RAIN</span></h1>
-    <p>因为《天启日》六年没有出续集所以搞了一个OC世界观<br>当前版本：“异轨战略”</p>
+    <p>因为《天启日》六年没有出续集所以搞了一个OC世界观<br>当前版本：“异轨战略”<br>(请手动打开右上角音乐)</p>
   </div>
   <div class="scroll-hint"><span>SCROLL DOWN</span><i></i></div>
 </header>
 
 <section id="world">
-  <div class="section-head reveal in">
+  <div class="section-head reveal">
     <span class="idx">01</span><h2>世界</h2><span class="en">THE SURVIVED WORLD</span>
   </div>
   <div class="about">
-    <div class="copy reveal in">
+    <div class="copy reveal">
       <p>自天启日之后，人类只能聚居在一片城邦。世界各处都可能下<strong>「黑雨」</strong>。而人类存活所依赖的政体也叫<strong>黑雨</strong>。</p>
       
       
@@ -228,76 +347,86 @@ footer{
         <li><b>III</b><span>无论哪一个黑雨都有上述特性</span></li>
       </ul>
     </div>
-    <figure class="figure glass reveal in" data-delay="1">
+    <figure class="figure glass reveal" data-delay="1">
       <img src="assets/world.jpg" alt="世界概念图" onerror="this.style.display='none'">
     </figure>
   </div>
+  <a class="section-cta" href="#">查看详情</a>
 </section>
 
 <section id="cast">
-  <div class="section-head reveal in">
+  <div class="section-head reveal">
     <span class="idx">02</span><h2>角色</h2><span class="en">Cast</span>
   </div>
   <div class="cards">
-    <article class="card glass reveal in">
+    <article class="card glass reveal">
       <span class="tag">PROTAGONIST</span>
-      <img src="assets/char-1.jpg" alt="主角" onerror="this.style.display='none'">
+      <a href="character-1.html"><img src="assets/char-1.jpg" alt="主角" onerror="this.style.display='none'"></a>
       <div class="meta"><h3>空着</h3><p>由你们书写</p></div>
     </article>
-    <article class="card glass reveal in" data-delay="1">
+    <article class="card glass reveal" data-delay="1">
       <span class="tag">MENTOR</span>
-      <img src="assets/char-2.jpg" alt="老鲸歌者" onerror="this.style.display='none'" style="display: none;">
+      <a href="character-2.html"><img src="assets/char-2.jpg" alt="老鲸歌者" onerror="this.style.display='none'"></a>
       <div class="meta"><h3>也空着</h3><p>你们快写吧</p></div>
     </article>
-    <article class="card glass reveal in" data-delay="2">
+    <article class="card glass reveal" data-delay="2">
       <span class="tag">ANTAGONIST</span>
-      <img src="assets/char-3.jpg" alt="议会代表" onerror="this.style.display='none'" style="display: none;">
+      <a href="character-3.html"><img src="assets/char-3.jpg" alt="议会代表" onerror="this.style.display='none'"></a>
       <div class="meta"><h3>我的意思是</h3><p>画画也可以</p></div>
     </article>
   </div>
+  <a class="section-cta" href="#">查看详情</a>
 </section>
 
 <section id="places">
-  <div class="section-head reveal in">
+  <div class="section-head reveal">
     <span class="idx">03</span><h2>地点</h2><span class="en">Locations</span>
   </div>
-  <div class="places">
-    <figure class="place wide glass reveal in">
-      <img src="assets/place-1.jpg" alt="烬岛" onerror="this.style.display='none'">
-      <figcaption>核心区<small>ANCHOR · EMBER</small></figcaption>
+    <div class="places">
+    <figure class="place wide glass reveal">
+      <a href="location-1.html"><img src="assets/place-1.jpg" alt="烬岛" onerror="this.style.display='none'"></a>
+      <figcaption>核心区<small>CORE</small></figcaption>
     </figure>
-    <figure class="place glass reveal in" data-delay="1">
-      <img src="assets/place-2.jpg" alt="盐岛" onerror="this.style.display='none'" style="display: none;">
-      <figcaption>周围城区（次核心区）<small>ANCHOR · SALT</small></figcaption>
+    <figure class="place glass reveal" data-delay="1">
+      <a href="location-2.html"><img src="assets/place-2.jpg" alt="盐岛" onerror="this.style.display='none'"></a>
+      <figcaption>周围城区（次核心区）<small>CITY</small></figcaption>
     </figure>
-    <figure class="place glass reveal in" data-delay="2">
-      <img src="assets/place-3.jpg" alt="静岛" onerror="this.style.display='none'" style="display: none;">
-      <figcaption>裂隙及其附近<small>ANCHOR · SILENCE</small></figcaption>
+    <figure class="place glass reveal" data-delay="2">
+      <a href="location-3.html"><img src="assets/place-3.jpg" alt="静岛" onerror="this.style.display='none'"></a>
+      <figcaption>裂隙及其附近<small>THE CUT</small></figcaption>
     </figure>
-    <figure class="place wide glass reveal in" data-delay="3">
-      <img src="assets/place-4.jpg" alt="长歌" onerror="this.style.display='none'" style="display: none;">
-      <figcaption>郊外未知区域<small>THE WHALE CITY</small></figcaption>
+    <figure class="place wide glass reveal" data-delay="3">
+      <a href="location-4.html"><img src="assets/place-4.jpg" alt="长歌" onerror="this.style.display='none'"></a>
+      <figcaption>郊外未知区域<small>THE UNKOWN</small></figcaption>
     </figure>
   </div>
+  <a class="section-cta" href="#">查看详情</a>
 </section>
 
 <section id="timeline">
-  <div class="section-head reveal in">
+  <div class="section-head reveal">
     <span class="idx">04</span><h2>时间线（这里还没写完）</h2><span class="en">TIMELINE</span>
   </div>
   <div class="timeline">
-    <div class="tl-item reveal in"><time>潮历 0 年</time><h4>大退潮</h4><p>地表沉没，人类失去大陆。</p></div>
-    <div class="tl-item reveal in"><time>潮历 47 年</time><h4>第一座鲸背城落成</h4><p>人类学会与鲸共生，城市开始移动。</p></div>
-    <div class="tl-item reveal in"><time>潮历 210 年</time><h4>捕梦者行会成立</h4><p>梦被定价，潮晶成为硬通货。</p></div>
-    <div class="tl-item reveal in"><time>潮历 296 年</time><h4>长歌开口</h4><p>一头蓝鲸第一次用人语说出了自己的名字。</p></div>
-    <div class="tl-item reveal in"><time>潮历 300 年</time><h4>现在</h4><p>最后一次退潮正在逼近。</p></div>
+    <div class="tl-item reveal"><time>潮历 0 年</time><h4>天启日</h4><p>，人类失去。</p></div>
+    <div class="tl-item reveal"><time>潮历 47 年</time><h4>大暴雨</h4><p>人类学会。</p></div>
+    <div class="tl-item reveal"><time>潮历 210 年</time><h4>特大暴雨</h4><p>。</p></div>
+    <div class="tl-item reveal"><time>潮历 296 年</time><h4>日蚀</h4><p>人语。</p></div>
+    <div class="tl-item reveal"><time>潮历 300 年</time><h4>日后谈</h4><p>最后。</p></div>
   </div>
+  <a class="section-cta" href="#">查看详情</a>
 </section>
 
 <footer>
-  <span>潮汐纪元 · TIDE EPOCH</span>
+  <span>黑雨 · TRY YIGUI</span>
   <span>© 2026 · A PERSONAL WORLD BUILDING PROJECT</span>
 </footer>
+
+<!-- 背景音乐：放在 body 末尾，循环播放，默认音量 0.3（30%） -->
+
+<audio id="bgm-player" src="assets/bgm.mp3" loop preload="auto"></audio>
+<audio id="rain-player" src="assets/rain-loop.mp3" loop preload="auto" ></audio>
+
 
 <script>
 /* 导航滚动变玻璃 */
@@ -321,6 +450,14 @@ const io = new IntersectionObserver((entries) => {
 }, {threshold: 0.14, rootMargin: '0px 0px -8% 0px'});
 document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
+/* 首屏内元素立即显示，避免截图/无滚动时空白 */
+document.querySelectorAll('.reveal').forEach(el => {
+  const r = el.getBoundingClientRect();
+  if (r.top < innerHeight * 0.95) el.classList.add('in');
+});
+setTimeout(() => document.querySelectorAll('.reveal').forEach(el => el.classList.add('in')), 2500);
+
+
 /* 有 hero.jpg 就自动用作首屏背景 */
 const probe = new Image();
 probe.onload = () => {
@@ -328,7 +465,59 @@ probe.onload = () => {
   heroBg.classList.add('has-image');
 };
 probe.src = 'assets/hero.jpg';
+
+
+(function () {
+  const bgm  = document.getElementById('bgm-player');
+  const rain = document.getElementById('rain-player');
+  const toggle = document.getElementById('bgm-toggle');
+
+  // 音量分层：BGM 为主体，雨声作底噪
+  bgm.volume  = 0.3;   // 30%
+  rain.volume = 0.13;  // 约 BGM 的 40%，按素材实际响度再微调
+
+  // 同步播放 / 暂停
+  toggle.addEventListener('click', () => {
+    if (bgm.paused) {
+      bgm.play().catch(console.warn);
+      rain.play().catch(console.warn);
+    } else {
+      bgm.pause();
+      rain.pause();
+    }
+  });
+
+  // 图标状态：任一开始播放就算“播放中”
+  const syncIcon = () => {
+    toggle.classList.toggle('playing', !bgm.paused || !rain.paused);
+  };
+  bgm.addEventListener('play', syncIcon);
+  bgm.addEventListener('pause', syncIcon);
+  rain.addEventListener('play', syncIcon);
+  rain.addEventListener('pause', syncIcon);
+
+  // 切后台时都暂停，回来后恢复（只有用户主动播放过才恢复）
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      bgm.pause();
+      rain.pause();
+    } else if (bgm.dataset.userPlayed === 'true') {
+      bgm.play().catch(() => {});
+      rain.play().catch(() => {});
+    }
+  });
+
+  toggle.addEventListener('click', () => {
+    if (!bgm.paused) bgm.dataset.userPlayed = 'true';
+  });
+})();
+
+
+
 </script>
+
+
+
 
 
 </body></html>
