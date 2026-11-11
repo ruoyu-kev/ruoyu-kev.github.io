@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>黑雨 · 世界地图</title>
+
+<!-- Leaflet 核心样式 -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<style>
+:root{
+  --bg:#0f0505;
+  --ink:#f6abab5d;
+  --ink-dim:#ffe2f2;
+  --gold:#69561d;
+  --cyan:#c92323;
+  --line:rgba(255,0,0,0.14);
+  --glass:rgba(52,0,0,0.566);
+  --serif:"Noto Serif SC","Songti SC","Source Han Serif SC",Georgia,serif;
+  --sans:"Inter","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --mono:"JetBrains Mono","SFMono-Regular",Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg);color:var(--ink);font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;overflow:hidden;
+}
+
+/* 整页颗粒噪点，和主站一致 */
+body::after{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:600;opacity:.035;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
+}
+
+/* ===== 雨粒子画布 ===== */
+#rain-canvas{
+  position:fixed;inset:0;width:100%;height:100%;
+  pointer-events:none;
+  z-index:45; /* 在地图(1)之上，UI控件(500)之下 */
+  opacity:.6;
+}
+
+/* =========================================================
+   黑雨 · 悬浮歌单播放器
+   ========================================================= */
+.music-widget {
+  position: fixed;
+  top: 84px;
+  right: clamp(16px, 4vw, 24px);
+  z-index: 95;
+  width: 240px;
+  background: rgba(15, 5, 5, 0.85);
+  backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.music-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  height: 44px;
+  box-sizing: border-box;
+}
+
+.music-toggle,
+.music-next,
+.music-rain {
+  background: none;
+  border: none;
+  color: var(--ink-dim);
+  cursor: pointer;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  transition: color 0.3s, opacity 0.3s;
+}
+.music-toggle:hover,
+.music-next:hover,
+.music-rain:hover { color: var(--ink); }
+
+.music-toggle .icon-pause { display: none; }
+.music-toggle.playing .icon-play { display: none; }
+.music-toggle.playing .icon-pause { display: block; }
+
+.music-rain { opacity: 0.4; }
+.music-rain.is-active {
+  color: var(--cyan);
+  opacity: 1;
+  filter: drop-shadow(0 0 5px rgba(201,35,35,0.6));
+}
+
+.music-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.music-title {
+  font-family: var(--serif);
+  font-size: 12px;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+.music-artist {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--gold);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.music-list {
+  list-style: none;
+  max-height: 0;
+  opacity: 0;
+  overflow-y: auto;
+  transition: max-height 0.4s ease, opacity 0.3s ease;
+  border-top: 1px solid var(--line);
+  background: rgba(10, 3, 3, 0.6);
+}
+
+.music-widget:hover .music-list,
+.music-widget.is-open .music-list {
+  max-height: 260px;
+  opacity: 1;
+}
+
+.music-list li {
+  padding: 10px 14px;
+  font-family: var(--sans);
+  font-size: 11px;
+  color: var(--ink-dim);
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 0, 0, 0.05);
+  transition: all 0.25s;
+  display: flex;
+  justify-content: space-between;
+}
+.music-list li:hover {
+  background: rgba(201, 35, 35, 0.15);
+  color: var(--ink);
+  padding-left: 18px;
+}
+.music-list li.is-active {
+  color: var(--cyan);
+  background: rgba(201, 35, 35, 0.1);
+  font-weight: 500;
+}
+
+.music-list::-webkit-scrollbar { width: 4px; }
+.music-list::-webkit-scrollbar-track { background: transparent; }
+.music-list::-webkit-scrollbar-thumb {
+  background: rgba(201, 35, 35, 0.4);
+  border-radius: 2px;
+}
+
+@media (max-width: 600px) {
+  .music-widget { width: 200px; top: 72px; }
+  .music-widget:hover .music-list,
+  .music-widget.is-open .music-list { max-height: 200px; }
+}
+
+/* ===== 左上角返回按钮 ===== */
+.back-btn {
+  position: fixed;
+  top: clamp(16px, 3vh, 24px);
+  left: clamp(16px, 3vw, 32px);
+  z-index: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .22em;
+  color: var(--ink-dim);
+  text-decoration: none;
+  background: rgba(15,5,5,.7);
+  backdrop-filter: blur(10px);
+  padding: 10px 16px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  transition: color .3s, border-color .3s, background .3s;
+}
+.back-btn:hover {
+  color: var(--ink);
+  border-color: rgba(201,35,35,.45);
+  background: rgba(52,0,0,.8);
+}
+.back-btn i {
+  display: block;
+  width: 16px;
+  height: 1px;
+  background: var(--cyan);
+  position: relative;
+  transition: width .35s;
+}
+.back-btn i::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -3px;
+  width: 7px;
+  height: 7px;
+  border-left: 1px solid var(--cyan);
+  border-bottom: 1px solid var(--cyan);
+  transform: rotate(45deg);
+}
+.back-btn:hover i {
+  width: 24px;
+}
+
+/* 地图容器 */
+#map{
+  position:fixed;inset:0;
+  width:100%;height:100%;
+  background:#0a0303;
+  z-index:1;
+}
+
+/* ===== Leaflet 控件暗红化 ===== */
+.leaflet-control-attribution{
+  background:rgba(15,5,5,.7)!important;
+  color:rgba(255,226,242,.4)!important;
+  font-family:var(--mono);
+  font-size:10px!important;
+  letter-spacing:.08em;
+  backdrop-filter:blur(6px);
+}
+.leaflet-control-attribution a{color:var(--cyan)!important}
+.leaflet-control-zoom a{
+  background:rgba(15,5,5,.75)!important;
+  color:var(--ink-dim)!important;
+  border-color:var(--line)!important;
+  backdrop-filter:blur(8px);
+  transition:background .3s,color .3s;
+}
+.leaflet-control-zoom a:hover{
+  background:rgba(52,0,0,.9)!important;
+  color:var(--ink)!important;
+}
+.leaflet-top.leaflet-right{
+  margin-top:88px;
+  margin-right:20px;
+}
+
+/* ===== 左上角标题卡片 ===== */
+.map-header{
+  position:fixed;
+  top:88px;
+  left:clamp(16px,3vw,32px);
+  z-index:500;
+  width:min(360px, calc(100vw - 32px));
+  padding:22px 24px 20px;
+  background:var(--glass);
+  border:1px solid var(--line);
+  border-radius:2px;
+  backdrop-filter:blur(20px) saturate(140%);
+  box-shadow:0 24px 80px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.05);
+}
+.map-header .kicker{
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:.4em;
+  color:var(--gold);
+  text-transform:uppercase;
+  margin-bottom:12px;
+}
+.map-header h1{
+  font-family:var(--serif);
+  font-size:clamp(24px,3vw,32px);
+  font-weight:500;
+  letter-spacing:.08em;
+  color:var(--ink);
+  margin-bottom:8px;
+}
+.map-header .sub{
+  font-size:13px;
+  line-height:1.85;
+  color:var(--ink-dim);
+  letter-spacing:.02em;
+}
+
+/* ===== 左下角图例 ===== */
+.map-legend{
+  position:fixed;
+  left:clamp(16px,3vw,32px);
+  bottom:clamp(16px,3vh,32px);
+  z-index:500;
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:.18em;
+  color:var(--ink-dim);
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  pointer-events:none;
+}
+.map-legend span{display:flex;align-items:center;gap:9px}
+.map-legend i{
+  display:block;width:13px;height:13px;
+  border:1px solid rgba(201,35,35,.6);
+  background:rgba(201,35,35,.15);
+}
+.map-legend i.sub{
+  border-color: rgba(216,178,106,.8);
+  background: rgba(216,178,106,.15);
+  border-radius: 50%;
+  width: 10px;height: 10px;
+}
+
+/* ===== 右下角区域档案面板 ===== */
+#region-panel{
+  position:fixed;
+  right:clamp(16px,3vw,32px);
+  bottom:clamp(16px,3vh,32px);
+  z-index:500;
+  width:min(360px, calc(100vw - 32px));
+  background:var(--glass);
+  border:1px solid var(--line);
+  border-radius:2px;
+  backdrop-filter:blur(20px) saturate(140%);
+  box-shadow:0 24px 80px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.05);
+  padding:24px 24px 22px;
+  transform:translateY(16px);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .4s cubic-bezier(.16,1,.3,1), transform .4s cubic-bezier(.16,1,.3,1);
+}
+#region-panel.is-open{
+  opacity:1;
+  transform:translateY(0);
+  pointer-events:auto;
+}
+#region-panel .panel-kicker{
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:.4em;
+  color:var(--gold);
+  text-transform:uppercase;
+  margin-bottom:12px;
+}
+#region-panel h3{
+  font-family:var(--serif);
+  font-size:24px;
+  font-weight:500;
+  letter-spacing:.06em;
+  color:var(--ink);
+  margin-bottom:6px;
+}
+#region-panel .panel-en{
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:.25em;
+  color:var(--ink-dim);
+  text-transform:uppercase;
+  margin-bottom:16px;
+}
+#region-panel p{
+  font-size:14px;
+  line-height:1.95;
+  color:var(--ink-dim);
+  letter-spacing:.02em;
+}
+#region-panel .panel-close{
+  position:absolute;
+  top:10px;right:12px;
+  background:none;border:none;
+  color:var(--ink-dim);
+  font-size:20px;
+  line-height:1;
+  padding:6px;
+  cursor:pointer;
+  transition:color .3s;
+}
+#region-panel .panel-close:hover{color:var(--ink)}
+
+/* ===== 底部状态条 ===== */
+.map-status{
+  position:fixed;
+  left:50%;bottom:20px;
+  transform:translateX(-50%);
+  z-index:500;
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:.22em;
+  color:rgba(255,226,242,.35);
+  white-space:nowrap;
+  pointer-events:none;
+}
+
+/* ===== 区域图形 ===== */
+.region-marker{
+  fill:rgba(201,35,35,.14);
+  stroke:rgba(201,35,35,.55);
+  stroke-width:1.6;
+  cursor:pointer;
+  transition:fill .35s ease, stroke .35s ease, filter .35s ease;
+}
+.region-marker:hover,
+.region-marker.is-active{
+  fill:rgba(201,35,35,.38);
+  stroke:var(--cyan);
+  stroke-width:2.2;
+  filter:drop-shadow(0 0 14px rgba(201,35,35,.55));
+}
+
+.sub-region-marker{
+  fill:rgba(216,178,106,.08);
+  stroke:rgba(216,178,106,.65);
+  stroke-width:1.2;
+  stroke-dasharray: 4 4;
+  cursor:pointer;
+  transition:fill .35s ease, stroke .35s ease, filter .35s ease;
+}
+.sub-region-marker:hover,
+.sub-region-marker.is-active{
+  fill:rgba(216,178,106,.35);
+  stroke:#ffda75;
+  stroke-width:2;
+  filter:drop-shadow(0 0 12px rgba(216,178,106,.6));
+}
+
+.region-path{
+  fill:rgba(201,35,35,.08);
+  stroke:rgba(201,35,35,.55);
+  stroke-width:1.5;
+  cursor:pointer;
+  transition:fill .35s ease, stroke .35s ease, filter .35s ease;
+}
+.region-path:hover,
+.region-path.is-active{
+  fill:rgba(201,35,35,.26);
+  stroke:var(--cyan);
+  stroke-width:2.2;
+  filter:drop-shadow(0 0 12px rgba(201,35,35,.5));
+}
+
+/* ===== 移动端 ===== */
+@media (max-width:600px){
+  .back-btn {
+    top: 16px;
+    left: 12px;
+    padding: 8px 12px;
+    font-size: 10px;
+  }
+  .map-header{
+    top:76px;
+    left:12px;right:12px;
+    width:auto;
+    padding:18px 18px 16px;
+  }
+  .map-header h1{font-size:22px}
+  .map-header .sub{font-size:12px}
+  #region-panel{
+    left:12px;right:12px;bottom:12px;
+    width:auto;
+    padding:20px;
+  }
+  #region-panel h3{font-size:20px}
+  .map-legend{display:none}
+  .map-status{display:none}
+  .leaflet-top.leaflet-right{
+    margin-top:auto;
+    margin-bottom:0;
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  #rain-canvas{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- 雨粒子画布 -->
+<canvas id="rain-canvas" aria-hidden="true"></canvas>
+
+<!-- 返回按钮 -->
+<a href="index.html" class="back-btn"><i></i>返回黑雨</a>
+
+<!-- 悬浮歌单播放器 -->
+<div class="music-widget" id="music-widget">
+  <div class="music-bar">
+    <button class="music-toggle" id="music-toggle" aria-label="播放或暂停">
+      <svg class="icon-play" viewBox="0 0 24 24" width="18" height="18"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+      <svg class="icon-pause" viewBox="0 0 24 24" width="18" height="18"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" fill="currentColor"/></svg>
+    </button>
+    <div class="music-info">
+      <span class="music-title" id="music-title">黑雨 · OST</span>
+      <span class="music-artist" id="music-artist">LOADING...</span>
+    </div>
+    <button class="music-rain" id="music-rain" aria-label="开关雨声" title="开关环境雨声">
+      <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 2.5c-3.3 0-6 2.7-6 6 0 2.1 1.1 4 2.8 5l-1.3 2.8c-.2.4 0 .9.4 1.1.4.2.9 0 1.1-.4l1.5-3.2c.5.1 1 .2 1.5.2s1-.1 1.5-.2l1.5 3.2c.2.4.7.6 1.1.4.4-.2.6-.7.4-1.1l-1.3-2.8c1.7-1 2.8-2.9 2.8-5 0-3.3-2.7-6-6-6zm0 9c-1.7 0-3-1.3-3-3s1.3-3 3-3 3 1.3 3 3-1.3 3-3 3z" fill="currentColor"/></svg>
+    </button>
+    <button class="music-next" id="music-next" aria-label="下一首">
+      <svg viewBox="0 0 24 24" width="16" height="16"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" fill="currentColor"/></svg>
+    </button>
+  </div>
+  <ul class="music-list" id="music-list"></ul>
+</div>
+
+<!-- 地图 -->
+<div id="map"></div>
+
+<!-- 左上角标题 -->
+<div class="map-header">
+  <div class="kicker">05 / WORLD ATLAS</div>
+  <h1>黑雨 · 世界</h1>
+  <p class="sub">点击地图上的<strong>大红圈</strong>查看区域简介，点击圈内的<strong>小金圈</strong>查看特定设施或子设定档案。</p>
+</div>
+
+<!-- 左下角图例 -->
+<div class="map-legend" aria-hidden="true">
+  <span><i></i> 主区域（大红圈）</span>
+  <span><i class="sub"></i> 子设定（小金圈）</span>
+</div>
+
+<!-- 右下角档案面板 -->
+<div id="region-panel" role="dialog" aria-live="polite">
+  <button class="panel-close" aria-label="关闭">×</button>
+  <div class="panel-kicker" id="panel-kicker">REGION / 区域档案</div>
+  <h3 id="panel-title">—</h3>
+  <div class="panel-en" id="panel-en">—</div>
+  <p id="panel-desc">点击地图上的发光区域，读取它的档案。</p>
+</div>
+
+<!-- 底部状态条 -->
+<div class="map-status" id="map-status">ZOOM 0 · —</div>
+
+<!-- Leaflet 核心脚本 -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+/* ============================================================
+   1. 地图配置
+   ============================================================ */
+const MAP_CONFIG = {
+  image : null,
+  width : 1600,
+  height: 1000
+};
+
+/* 占位底图 */
+const PLACEHOLDER_SVG = (() => {
+  const w = MAP_CONFIG.width, h = MAP_CONFIG.height;
+  const vLines = Array.from({length: Math.floor(w/100)+1}, (_,i) =>
+    `<line x1="${i*100}" y1="0" x2="${i*100}" y2="${h}"/>`).join('');
+  const hLines = Array.from({length: Math.floor(h/100)+1}, (_,i) =>
+    `<line x1="0" y1="${i*100}" x2="${w}" y2="${i*100}"/>`).join('');
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    <rect width="${w}" height="${h}" fill="#0a0303"/>
+    <g stroke="rgba(201,35,35,0.07)" stroke-width="1">${vLines}${hLines}</g>
+    <path d="M280 260 Q480 180 680 320 T1080 380 Q1280 420 1240 640 T880 820 Q580 860 440 700 T280 260Z"
+          fill="rgba(201,35,35,0.04)" stroke="rgba(201,35,35,0.18)" stroke-width="2"/>
+  </svg>`;
+})();
+
+/* ============================================================
+   2. 区域数据 
+   ============================================================ */
+const REGIONS = [
+  {
+    id: 'core',
+    name: '核心区',
+    en: 'BABEL / CORE',
+    type: 'circle',
+    center: [680, 480],
+    radius: 130,
+    desc: '包括巴别塔和周边区域，戒备森严。',
+    subRegions: [
+      {
+        id: 'core-babel',
+        name: '巴别塔',
+        en: 'BABEL TOWER',
+        type: 'circle',
+        center: [680, 480],
+        radius: 35,
+        desc: '矗立在都市中央的巨型太空电梯，无人知晓运输的内容。及做事大型市政复合体，内环所有的市政府集中于此，远程负责各地区事务。象征着黑雨对地区的绝对掌控，但是在大崩塌之前，正在建设中的它原本是人类共同对抗天启的象征。'
+      }
+    ]
+  },
+  {
+    id: 'city',
+    name: '内环与外环',
+    en: 'SECTORS',
+    type: 'circle',
+    center: [560, 680],
+    radius: 150,
+    desc: '故事的主要舞台，有不同的地区，具体见世界设定页。',
+    subRegions: [
+      {
+        id: 'Jiu Long',
+        name: '九龙',
+        en: 'Jiu Long',
+        type: 'circle',
+        center: [500, 630],
+        radius: 55,
+        desc: '有着很多广告牌和楼房间夹着的小路，听说很合适跑酷'
+      },
+      {
+        id: 'city-umbrella',
+        name: '伞节点',
+        en: 'UMBRELLA NODE',
+        type: 'circle',
+        center: [600, 630],
+        radius: 45,
+        desc: '各市区中央矗立着“伞节点”——本质是大型空间现实稳定锚，用于抑制黑雨影响。按照行政等级，不同的节点大小不一'
+      }
+    ]
+  },
+  {
+    id: 'cut',
+    name: '断裂带',
+    en: 'THE FAULT',
+    type: 'circle',
+    center: [1120, 520],
+    radius: 110,
+    desc: '从-50m平面向下，空间不稳定性随深度稳步提升。开发人员将其比作“海”，分为光合作用层、暮光层、无光层、海沟层。（人脑中对海洋的联想可以有效降低断裂带的模因危害）',
+    subRegions: [
+      {
+        id: 'cut-center',
+        name: '地层研究中心',
+        en: 'RESEARCH CENTER',
+        type: 'circle',
+        center: [1100, 480],
+        radius: 30,
+        desc: '断裂带崖壁上悬挂着由各大地区联合设立的“地层研究中心”，由外环各地区联合设立。拥有唯一能由“海平面”直达“海沟层”的电梯。'
+      }
+    ]
+  },
+  {
+    id: 'unknown',
+    name: '年代现象与未知领域',
+    en: 'THE UNKNOWN',
+    type: 'circle',
+    center: [380, 300],
+    radius: 130,
+    desc: '在无光层不稳定的现实中，常出现“年代现象”——来自不同时空的空间碎片嵌入侵废墟中，伴随“洋流”造成不同深度层的异常联通。',
+    subRegions: [
+      {
+        id: 'unknown-snake',
+        name: '衔尾蛇组织',
+        en: 'OUROBOROS',
+        type: 'circle',
+        center: [340, 260],
+        radius: 25,
+        desc: '起源不明的武装团体，以摧毁核心区为最终目的。'
+      },
+      {
+        id: 'unknown-ahp',
+        name: '阿加雷斯之手',
+        en: 'A.H.P',
+        type: 'circle',
+        center: [410, 330],
+        radius: 30,
+        desc: '活跃在此处的另一神秘势力（A.H.P），具体资料尚待补全。'
+      }
+    ]
+  }
+];
+
+/* ============================================================
+   3. 初始化地图
+   ============================================================ */
+const map = L.map('map', {
+  crs: L.CRS.Simple,
+  minZoom: -2,
+  maxZoom: 4,
+  zoomControl: false,
+  attributionControl: true
+});
+
+L.control.zoom({ position: 'topright' }).addTo(map);
+
+const bounds = [[0, 0], [MAP_CONFIG.height, MAP_CONFIG.width]];
+
+const mapImage = MAP_CONFIG.image
+  ? MAP_CONFIG.image
+  : 'data:image/svg+xml;utf8,' + encodeURIComponent(PLACEHOLDER_SVG);
+
+L.imageOverlay(mapImage, bounds, {
+  interactive: false,
+  className: 'world-map-image'
+}).addTo(map);
+
+map.fitBounds(bounds);
+map.setMaxBounds([
+  [-MAP_CONFIG.height * 0.3, -MAP_CONFIG.width * 0.3],
+  [MAP_CONFIG.height * 1.3, MAP_CONFIG.width * 1.3]
+]);
+
+/* ============================================================
+   4. 绘制区域
+   ============================================================ */
+const layerById = {};
+
+function drawRegion(region, isSub = false) {
+  let layer;
+  const className = isSub ? 'sub-region-marker' : 'region-marker';
+
+  if (region.type === 'polygon') {
+    const latlngs = region.points.map(p => [p[1], p[0]]);
+    layer = L.polygon(latlngs, {
+      className: isSub ? 'sub-region-path' : 'region-path',
+      color: isSub ? 'rgba(216,178,106,.65)' : 'rgba(201,35,35,.55)',
+      weight: isSub ? 1.2 : 1.5,
+      fillColor: isSub ? 'rgba(216,178,106,.08)' : 'rgba(201,35,35,.08)',
+      fillOpacity: 1
+    }).addTo(map);
+  } else {
+    const center = [region.center[1], region.center[0]];
+    layer = L.circle(center, {
+      radius: region.radius,
+      className: className,
+      color: isSub ? 'rgba(216,178,106,.65)' : 'rgba(201,35,35,.55)',
+      weight: isSub ? 1.2 : 1.6,
+      fillColor: isSub ? 'rgba(216,178,106,.08)' : 'rgba(201,35,35,.14)',
+      fillOpacity: 1
+    }).addTo(map);
+  }
+
+  layerById[region.id] = layer;
+
+  layer.on('click', (e) => {
+    L.DomEvent.stopPropagation(e);
+    openPanel(region, isSub);
+  });
+}
+
+REGIONS.forEach(region => {
+  drawRegion(region, false);
+  if (region.subRegions && Array.isArray(region.subRegions)) {
+    region.subRegions.forEach(sub => drawRegion(sub, true));
+  }
+});
+
+/* ============================================================
+   5. 面板交互
+   ============================================================ */
+const panel      = document.getElementById('region-panel');
+const panelKicker= document.getElementById('panel-kicker');
+const panelTitle = document.getElementById('panel-title');
+const panelEn    = document.getElementById('panel-en');
+const panelDesc  = document.getElementById('panel-desc');
+const panelClose = panel.querySelector('.panel-close');
+const statusEl   = document.getElementById('map-status');
+
+let activeId = null;
+
+function openPanel(region, isSub) {
+  if (activeId && layerById[activeId]) {
+    layerById[activeId].getElement()?.classList.remove('is-active');
+  }
+  activeId = region.id;
+  layerById[region.id].getElement()?.classList.add('is-active');
+
+  panelKicker.textContent = isSub ? 'SUB-REGION / 子设定档案' : 'REGION / 区域档案';
+  
+  panelTitle.textContent = region.name;
+  panelEn.textContent    = region.en;
+  panelDesc.textContent  = region.desc;
+  panel.classList.add('is-open');
+}
+
+function closePanel(){
+  panel.classList.remove('is-open');
+  if (activeId && layerById[activeId]) {
+    layerById[activeId].getElement()?.classList.remove('is-active');
+  }
+  activeId = null;
+}
+
+panelClose.addEventListener('click', closePanel);
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closePanel();
+});
+
+/* ============================================================
+   6. 底部状态条
+   ============================================================ */
+map.on('zoomend', () => {
+  statusEl.textContent = `ZOOM ${map.getZoom()} · ${MAP_CONFIG.width}×${MAP_CONFIG.height}`;
+});
+map.on('mousemove', e => {
+  const x = Math.round(e.latlng.lng);
+  const y = Math.round(e.latlng.lat);
+  statusEl.textContent = `ZOOM ${map.getZoom()} · X ${x} / Y ${y}`;
+});
+map.on('mouseout', () => {
+  statusEl.textContent = `ZOOM ${map.getZoom()} · ${MAP_CONFIG.width}×${MAP_CONFIG.height}`;
+});
+statusEl.textContent = `ZOOM ${map.getZoom()} · ${MAP_CONFIG.width}×${MAP_CONFIG.height}`;
+
+/* ============================================================
+   7. 雨粒子 Canvas 渲染
+   ============================================================ */
+(function () {
+  const cvs = document.getElementById('rain-canvas');
+  if (!cvs) return;
+  
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (prefersReduced) return;
+
+  const ctx = cvs.getContext('2d');
+  let W, H, DPR, drops = [];
+  const COUNT = window.innerWidth < 768 ? 50 : 120;
+
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = cvs.width = innerWidth * DPR;
+    H = cvs.height = innerHeight * DPR;
+    cvs.style.width = innerWidth + 'px';
+    cvs.style.height = innerHeight + 'px';
+  }
+
+  function makeDrop() {
+    return {
+      x: Math.random() * W,
+      y: Math.random() * H,
+      len: (15 + Math.random() * 25) * DPR,
+      speed: (4 + Math.random() * 5) * DPR,
+      drift: 0.5 * DPR,
+      alpha: 0.1 + Math.random() * 0.2
+    };
+  }
+
+  function init() {
+    resize();
+    drops = Array.from({ length: COUNT }, makeDrop);
+  }
+
+  let last = 0, paused = false;
+  document.addEventListener('visibilitychange', () => paused = document.hidden);
+
+  function frame(t) {
+    requestAnimationFrame(frame);
+    if (paused) return;
+    if (t - last < 33) return;
+    last = t;
+
+    ctx.clearRect(0, 0, W, H);
+    ctx.lineCap = 'round';
+
+    for (const d of drops) {
+      ctx.beginPath();
+      ctx.strokeStyle = `rgba(201,35,35,${d.alpha})`;
+      ctx.lineWidth = 1 * DPR;
+      ctx.moveTo(d.x, d.y);
+      ctx.lineTo(d.x - d.drift, d.y + d.len);
+      ctx.stroke();
+
+      d.x -= d.drift;
+      d.y += d.speed;
+
+      if (d.y > H + d.len) {
+        d.y = -d.len;
+        d.x = Math.random() * W;
+      }
+      if (d.x < -10) d.x = W + 10;
+    }
+  }
+
+  init();
+  addEventListener('resize', init);
+  requestAnimationFrame(frame);
+})();
+</script>
+
+<!-- 音频与播放器 -->
+<audio id="bgm-player" loop preload="auto"></audio>
+<audio id="rain-player" src="assets/rain-loop.opus" loop preload="auto"></audio>
+<script src="assets/player.js" defer></script>
+
+</body>
+</html>

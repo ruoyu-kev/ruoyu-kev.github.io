@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>世界 · 黑雨 / WORLD ARCHIVE</title>
+<style>
+:root{
+  --bg:#0f0505;
+  --ink:#f6abab;
+  --ink-dim:#ffe2f2;
+  --gold:#69561d;
+  --cyan:#c92323;
+  --line:rgba(255,0,0,.14);
+  --glass:rgba(52,0,0,.566);
+  --serif:"Noto Serif SC","Songti SC","Source Han Serif SC",Georgia,serif;
+  --sans:"Inter","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --mono:"JetBrains Mono","SFMono-Regular",Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--ink);font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+
+/* 颗粒噪点 + 暗角 */
+body::after{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:60;opacity:.035;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:59;
+  background:radial-gradient(ellipse at 50% 40%,transparent 45%,rgba(0,0,0,.6) 100%);
+}
+
+/* ===== 顶栏 ===== */
+.nav{
+  position:fixed;inset:0 0 auto 0;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px clamp(20px,4vw,56px);
+  background:rgba(65,3,11,.75);backdrop-filter:blur(18px) saturate(140%);
+  border-bottom:1px solid var(--line);
+}
+.back{
+  display:inline-flex;align-items:center;gap:10px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.22em;color:var(--ink-dim);
+  transition:color .3s;
+}
+.back:hover{color:var(--ink)}
+.back i{
+  display:block;width:16px;height:1px;background:var(--cyan);position:relative;
+  transition:width .35s;
+}
+.back i::before{
+  content:"";position:absolute;left:0;top:-3px;width:7px;height:7px;
+  border-left:1px solid var(--cyan);border-bottom:1px solid var(--cyan);
+  transform:rotate(45deg);
+}
+.back:hover i{width:24px}
+.nav .serial{
+  font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:var(--gold);
+}
+
+/* ===== 音乐播放器样式 ===== */
+.music-widget {
+  position: fixed;
+  top: 84px;
+  right: clamp(16px, 4vw, 24px);
+  z-index: 95;
+  width: 240px;
+  background: rgba(15, 5, 5, 0.85);
+  backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+.music-bar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; height: 44px; box-sizing: border-box;
+}
+.music-toggle, .music-next, .music-rain {
+  background: none; border: none; color: var(--ink-dim);
+  cursor: pointer; padding: 0; display: grid; place-items: center;
+  transition: color 0.3s, opacity 0.3s;
+}
+.music-toggle:hover, .music-next:hover, .music-rain:hover { color: var(--ink); }
+.music-toggle .icon-pause { display: none; }
+.music-toggle.playing .icon-play { display: none; }
+.music-toggle.playing .icon-pause { display: block; }
+.music-rain { opacity: 0.4; }
+.music-rain.is-active { color: var(--cyan); opacity: 1; filter: drop-shadow(0 0 5px rgba(201,35,35,0.6)); }
+.music-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+.music-title {
+  font-family: var(--serif); font-size: 12px; color: var(--ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px;
+}
+.music-artist {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; color: var(--gold);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.music-list {
+  list-style: none; max-height: 0; opacity: 0; overflow-y: auto;
+  transition: max-height 0.4s ease, opacity 0.3s ease;
+  border-top: 1px solid var(--line); background: rgba(10, 3, 3, 0.6);
+}
+.music-widget:hover .music-list, .music-widget.is-open .music-list { max-height: 260px; opacity: 1; }
+.music-list li {
+  padding: 10px 14px; font-family: var(--sans); font-size: 11px; color: var(--ink-dim);
+  cursor: pointer; border-bottom: 1px solid rgba(255, 0, 0, 0.05);
+  transition: all 0.25s; display: flex; justify-content: space-between;
+}
+.music-list li:hover { background: rgba(201, 35, 35, 0.15); color: var(--ink); padding-left: 18px; }
+.music-list li.is-active { color: var(--cyan); background: rgba(201, 35, 35, 0.1); font-weight: 500; }
+.music-list::-webkit-scrollbar { width: 4px; }
+.music-list::-webkit-scrollbar-track { background: transparent; }
+.music-list::-webkit-scrollbar-thumb { background: rgba(201, 35, 35, 0.4); border-radius: 2px; }
+
+@media (max-width: 900px) {
+  .music-widget { width: 200px; top: 72px; }
+}
+
+/* ===== 整体布局 ===== */
+.world-layout{
+  position:relative;z-index:5;
+  display:grid;grid-template-columns:240px minmax(0,1fr);
+  max-width:1280px;margin:0 auto;
+  padding-top:80px;
+}
+
+/* ---- 左侧章节索引 ---- */
+.world-index{
+  position:sticky;top:80px;align-self:start;
+  padding:clamp(30px,6vh,60px) 30px 60px clamp(20px,3vw,40px);
+  border-right:1px solid var(--line);
+  height:calc(100svh - 80px);
+  overflow-y:auto;
+}
+.world-index .index-kicker{
+  font-family:var(--mono);font-size:9px;letter-spacing:.4em;color:var(--gold);
+  text-transform:uppercase;margin-bottom:20px;
+}
+.world-index ol{list-style:none;display:flex;flex-direction:column;gap:2px}
+.world-index ol a{
+  display:flex;align-items:baseline;gap:12px;
+  padding:10px 0;border-bottom:1px solid transparent;
+  font-size:13px;letter-spacing:.1em;color:var(--ink-dim);
+  transition:color .3s,border-color .3s;
+}
+.world-index ol a::before{
+  content:attr(data-idx);
+  font-family:var(--mono);font-size:9px;letter-spacing:.15em;
+  color:var(--gold);min-width:22px;
+  transition:color .3s;
+}
+.world-index ol a:hover,
+.world-index ol a.is-current{
+  color:var(--ink);border-bottom-color:var(--line);
+}
+.world-index ol a.is-current::before{color:var(--cyan)}
+.world-index .index-note{
+  margin-top:30px;font-family:var(--mono);font-size:9px;line-height:1.9;
+  letter-spacing:.15em;color:rgba(255,226,242,.28);
+}
+
+/* ---- 右侧档案主体 ---- */
+.world-doc{
+  padding:clamp(30px,6vh,60px) clamp(20px,5vw,60px) 120px clamp(24px,4vw,56px);
+}
+
+/* 文档头部 */
+.doc-head{
+  padding-bottom:28px;border-bottom:1px solid var(--line);margin-bottom:50px;
+}
+.doc-head .eyebrow{
+  display:flex;align-items:center;gap:12px;margin-bottom:16px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.4em;color:var(--gold);
+}
+.doc-head .eyebrow::before{
+  content:"";width:5px;height:5px;border-radius:50%;background:var(--cyan);
+  box-shadow:0 0 10px var(--cyan);
+}
+.doc-head h1{
+  font-family:var(--serif);font-weight:600;
+  font-size:clamp(34px,5vw,60px);line-height:1;letter-spacing:.06em;
+  text-shadow:0 0 70px rgba(201,35,35,.25);
+}
+.doc-head h1 small{
+  display:block;margin-top:12px;
+  font-family:var(--mono);font-weight:300;font-size:clamp(10px,1vw,12px);
+  letter-spacing:.5em;color:var(--ink-dim);text-transform:uppercase;
+}
+.doc-head .doc-intro{
+  margin-top:26px;font-size:14px;line-height:2;color:var(--ink-dim);
+  max-width:600px;
+}
+
+/* 章节 */
+.doc-section{
+  scroll-margin-top:100px;
+  padding-bottom:60px;margin-bottom:60px;
+  border-bottom:1px solid var(--line);
+}
+.doc-section:last-of-type{border-bottom:none;margin-bottom:0}
+.doc-section .section-label{
+  display:flex;align-items:baseline;gap:16px;margin-bottom:24px;
+}
+.doc-section .section-label .idx{
+  font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--gold);
+}
+.doc-section .section-label h2{
+  font-family:var(--serif);font-weight:500;
+  font-size:clamp(22px,3vw,32px);letter-spacing:.06em;
+}
+.doc-section .section-label .en{
+  margin-left:auto;font-family:var(--mono);font-size:10px;
+  letter-spacing:.3em;color:var(--ink-dim);text-transform:uppercase;
+}
+
+/* 概念卡片 */
+.concept-grid{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+.concept-card{
+  padding:22px 22px 24px;
+  background:var(--glass);border:1px solid var(--line);border-radius:2px;
+  backdrop-filter:blur(16px) saturate(130%);
+}
+.concept-card .tag{
+  font-family:var(--mono);font-size:9px;letter-spacing:.25em;color:var(--cyan);
+  margin-bottom:12px;
+}
+.concept-card h3{
+  font-family:var(--serif);font-size:19px;font-weight:500;letter-spacing:.05em;
+  margin-bottom:10px;
+}
+.concept-card p{font-size:13px;line-height:1.9;color:var(--ink-dim)}
+
+/* 区域档案条目 */
+.region-entry{
+  padding:26px 0;border-bottom:1px solid var(--line);
+}
+.region-entry:last-child{border-bottom:none}
+.region-entry .entry-head{
+  display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:10px;
+}
+.region-entry .entry-no{
+  font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--cyan);
+}
+.region-entry .entry-head h3{
+  font-family:var(--serif);font-size:clamp(19px,2.4vw,24px);font-weight:500;
+  letter-spacing:.04em;
+}
+.region-entry .entry-en{
+  font-family:var(--mono);font-size:9px;letter-spacing:.25em;
+  color:var(--gold);text-transform:uppercase;
+}
+.region-entry .entry-brief{
+  font-size:13.5px;line-height:1.9;color:var(--ink-dim);max-width:640px;
+}
+.region-entry details{
+  margin-top:16px;
+}
+.region-entry details summary{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.22em;
+  color:var(--ink);cursor:pointer;list-style:none;
+  padding:8px 0;transition:color .3s;
+}
+.region-entry details summary::-webkit-details-marker{display:none}
+.region-entry details summary::after{
+  content:"+";font-size:13px;color:var(--gold);transition:transform .3s;
+}
+.region-entry details[open] summary::after{content:"—"}
+.region-entry details summary:hover{color:var(--cyan)}
+.region-entry details .entry-full{
+  margin-top:12px;padding-left:16px;border-left:1px solid var(--gold);
+  font-size:13px;line-height:1.95;color:var(--ink-dim);
+}
+.region-entry details .entry-full p + p{margin-top:10px}
+
+/* 底部返回 */
+.doc-foot{
+  margin-top:20px;padding-top:30px;
+  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--ink-dim);
+}
+.doc-foot a{
+  color:var(--ink);border-bottom:1px solid var(--gold);
+  padding-bottom:2px;transition:letter-spacing .4s;
+}
+.doc-foot a:hover{letter-spacing:.3em}
+
+/* ===== 响应式 ===== */
+@media (max-width:900px){
+  .world-layout{grid-template-columns:1fr;padding-top:72px}
+  .world-index{
+    position:relative;top:0;height:auto;overflow:visible;
+    border-right:none;border-bottom:1px solid var(--line);
+    padding:28px 20px 20px;
+  }
+  .world-index ol{flex-direction:row;flex-wrap:wrap;gap:0 20px}
+  .world-index ol a{padding:8px 0;font-size:12px}
+  .world-index .index-note{display:none}
+  .world-doc{padding:30px 20px 90px}
+  .concept-grid{grid-template-columns:1fr}
+}
+@media (max-width:600px){
+  .doc-head h1{font-size:32px}
+  .doc-head .doc-intro{font-size:13px}
+  .region-entry .entry-head{gap:10px}
+  .doc-foot{flex-direction:column}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition:none!important;animation:none!important}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+
+<!-- 顶栏 -->
+<nav class="nav">
+  <a class="back" href="index.html"><i></i>返回黑雨</a>
+  <span class="serial">ARCHIVE / WORLD</span>
+</nav>
+
+<!-- 悬浮音乐播放器 -->
+<div class="music-widget" id="music-widget">
+  <div class="music-bar">
+    <button class="music-toggle" id="music-toggle" aria-label="播放或暂停">
+      <svg class="icon-play" viewBox="0 0 24 24" width="18" height="18"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+      <svg class="icon-pause" viewBox="0 0 24 24" width="18" height="18"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" fill="currentColor"/></svg>
+    </button>
+    <div class="music-info">
+      <span class="music-title" id="music-title">黑雨 · OST</span>
+      <span class="music-artist" id="music-artist">LOADING...</span>
+    </div>
+    <button class="music-rain" id="music-rain" aria-label="开关雨声" title="开关环境雨声">
+      <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 2.5c-3.3 0-6 2.7-6 6 0 2.1 1.1 4 2.8 5l-1.3 2.8c-.2.4 0 .9.4 1.1.4.2.9 0 1.1-.4l1.5-3.2c.5.1 1 .2 1.5.2s1-.1 1.5-.2l1.5 3.2c.2.4.7.6 1.1.4.4-.2.6-.7.4-1.1l-1.3-2.8c1.7-1 2.8-2.9 2.8-5 0-3.3-2.7-6-6-6zm0 9c-1.7 0-3-1.3-3-3s1.3-3 3-3 3 1.3 3 3-1.3 3-3 3z" fill="currentColor"/></svg>
+    </button>
+    <button class="music-next" id="music-next" aria-label="下一首">
+      <svg viewBox="0 0 24 24" width="16" height="16"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" fill="currentColor"/></svg>
+    </button>
+  </div>
+  <ul class="music-list" id="music-list"></ul>
+</div>
+
+<audio id="bgm-player" loop preload="auto"></audio>
+<audio id="rain-player" src="assets/music/rain-loop.opus" loop preload="auto"></audio>
+
+<div class="world-layout">
+
+  <!-- 左侧章节索引 -->
+  <aside class="world-index">
+    <div class="index-kicker">CONTENTS / 档案目录</div>
+    <ol>
+      <li><a href="#concept" data-idx="01">黑雨 · 现象与政体</a></li>
+      <li><a href="#babel"   data-idx="02">巴别塔与核心区</a></li>
+      <li><a href="#inner"   data-idx="03">内环下城区</a></li>
+      <li><a href="#outer"   data-idx="04">外环 · 五大势力</a></li>
+      <li><a href="#fault"   data-idx="05">断裂带 · “海”</a></li>
+      <li><a href="#unknown" data-idx="06">未知郊区 · 年代现象</a></li>
+    </ol>
+    <p class="index-note">
+      本档案依据《黑雨》世界观整理。<br>
+      部分条目仍在书写中，<br>
+      等待新的记录者补全。
+    </p>
+  </aside>
+
+  <!-- 右侧档案主体 -->
+  <main class="world-doc">
+
+    <header class="doc-head">
+      <div class="eyebrow">BLACK RAIN · WORLD ARCHIVE</div>
+      <h1>
+        世界
+        <small>THE SURVIVED WORLD / VOL. 02</small>
+      </h1>
+      <p class="doc-intro">
+        天启日之后，人类不再拥有整片地表。城邦之外是黑雨频发，城邦之内是黑雨统治。
+        这份档案记录了“都市”内部的权力割裂与生存法则。
+      </p>
+    </header>
+
+    <!-- 01 黑雨 -->
+    <section class="doc-section" id="concept">
+      <div class="section-label">
+        <span class="idx">01</span><h2>黑雨</h2><span class="en">THE BLACK RAIN</span>
+      </div>
+
+      <div class="concept-grid">
+        <div class="concept-card">
+          <div class="tag">PHENOMENON</div>
+          <h3>现象：现实扭曲</h3>
+          <p>黑雨不是普通的降水。雨水落下的地方，物理规则开始松动，空间与时间出现可观测的偏移。扭曲程度随降雨强度与持续时间上升。黑雨本身是的白光。可因为雨滴的曝光导致视野内其他地方变得很暗，被称为黑雨。同时它不会触碰到任何现实物体，只会穿过。</p>
+        </div>
+        <div class="concept-card">
+          <div class="tag">POLITY</div>
+          <h3>政体：黑雨</h3>
+          <p>人类存活所依赖的政体，名字也来自这场雨。黑雨城邦以核心区为中枢，向周围城区指令。</p>
+        </div>
+        <div class="concept-card">
+          <div class="tag">RULE I</div>
+          <h3>不可预测</h3>
+          <p>黑雨会引发现实扭曲。扭曲可能以人的意志为转移，却也不遵循稳定的规律。每一次黑雨都是一次新的观测，可能有建筑，灾害或者实体。</p>
+        </div>
+        <div class="concept-card">
+          <div class="tag">RULE II</div>
+          <h3>灾难性</h3>
+          <p>黑雨可以带来灾难。灾难的规模与形式因地区而异，从局部空间错位到整片城区的现实崩解，都曾被记录在案。</p>
+        </div>
+        <div class="concept-card">
+          <div class="tag">RULE III</div>
+          <h3>暂时性</h3>
+          <p>黑雨<strong>通常</strong>不会持续超过24小时，但是其现实扭曲造物不一定。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 巴别塔与核心区 -->
+    <section class="doc-section" id="babel">
+      <div class="section-label">
+        <span class="idx">02</span><h2>巴别塔与核心区</h2><span class="en">BABEL & CORE</span>
+      </div>
+
+      <div class="region-entry">
+        <div class="entry-head">
+          <span class="entry-no">02-01</span>
+          <h3>巴别塔</h3>
+          <span class="entry-en">BABEL TOWER</span>
+        </div>
+        <p class="entry-brief">
+          位于都市正中央的巨型塔状结构，原为伊甸中心的太空运输中枢。集工业生产、行政决策、军事力量投射为一体的综合性巨构。
+        </p>
+        <details>
+          <summary>展开档案</summary>
+          <div class="entry-full">
+            <p><strong>形态：</strong>外形为巨型金字塔，于中部转为六棱柱，顶部延伸出数条粗壮缆绳伸入太空。内部由内至外分为核心（太空电梯）、军事模块区、技术科研模块与行政模块区。</p>
+            <p><strong>行政：</strong>自大清洗后，所有内环市政府被强行搬迁至此并由中央AI统一监督，成为了实际上的内环行政决策中心，所有政令都经由AI审核后才可通过内部网络发出。</p>
+            <p><strong>军事：</strong>大清洗期间，内环的军队被△统合整编，并大量入驻巴别塔以建立军事封锁区。至今，约有 40% 的军队驻守于巴别塔内，由AI辅助调度，是黑雨核心政府的最终防线。</p>
+            <p><strong>生产：</strong>太空电梯原先是科研与生产的枢纽，巴别塔继承了它的工业生产能力。在塔前广场的地面之下，无数自动工厂正在日夜加工制作军工产品。在巴别塔召开新闻发布会时，与会的记者们常常能感受到脚底传来轻微的震动。</p>
+            <p><strong>封锁：</strong>太空电梯仍在运行，每日都有许多轿厢上下，只是货物接受与发送全程由AI负责，处于黑箱状态，仅有黑雨核心政府的高层能得知货单内容。</p>
+          </div>
+        </details>
+      </div>
+
+      <div class="region-entry">
+        <div class="entry-head">
+          <span class="entry-no">02-02</span>
+          <h3>核心区</h3>
+          <span class="entry-en">CORE AREA</span>
+        </div>
+        <p class="entry-brief">
+          以巴别塔为中心，半径约 80km 的区域。巨企搬迁后的所在地，名义上保留企业编号，实则被架空为政府职能部门。
+        </p>
+        <details>
+          <summary>展开档案（环形分层与竞争法）</summary>
+          <div class="entry-full">
+            <p><strong>第一层：塔前核心圈</strong> - 最高级职能企业所在地。巨企总部围绕着巴别塔下的广场，呈环形包围着巴别塔的基座。</p>
+            <p><strong>第二层：专业企业区</strong> - 向外扩展的高密度超高层集群，按职能划分区块，该区域内多为中高端企业或巨企子公司。</p>
+            <p><strong>第三层：内环缓冲带</strong> - 核心区外围，连接内环居住区。该部分防务由企业安保自行负责，核心政府仅在事态超出控制时下场。主要承担人员准入、物资分流、数据镜像、日常抽检。</p>
+            <p><strong>补充：</strong>核心区并非完全死水一潭。企业间对于项目、经费的争夺是允许使用轻火力装备的，只要事态未超出《竞争法》划定的范围，核心政府不会介入。（参考风格：银翼杀手，夜之城公司广场）</p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <!-- 03 内环下城区 -->
+    <section class="doc-section" id="inner">
+      <div class="section-label">
+        <span class="idx">03</span><h2>内环下城区</h2><span class="en">INNER LOWER CITY</span>
+      </div>
+
+      <div class="region-entry">
+        <div class="entry-head">
+          <span class="entry-no">03-01</span>
+          <h3>被剥夺政治权利的居住区</h3>
+          <span class="entry-en">THE PLANNED ZONE</span>
+        </div>
+        <p class="entry-brief">
+          一片被夺走了政治权利，仅保留了生产与居住功能的区域。这里的企业基本只剩下民营性质的公司，司法与执法系统被剥离了行政系统，转变为了单纯的制度执行者。
+        </p>
+        <details>
+          <summary>展开档案</summary>
+          <div class="entry-full">
+            <p>底层民众被强制执行计划经济，从出生到入土，所有规程都由当地AI行政节点点对点安排，“自由”在这里也是可以被交易的资源。</p>
+            <p>你不用担心死亡，核心政府布置的“伞”节点覆盖了内环，基本抑制了灾害规模，行之有效的应急处理系统也可以保障救援行动的有效进行。</p>
+            <p>但你不能奢求自由，一切的一切都要由价值加以保证，否则政府只会保证你在温饱线上挣扎而不会让你有余力谋求“自我”。（参考风格：银翼杀手2049）</p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <!-- 04 外环五大势力 -->
+    <section class="doc-section" id="outer">
+      <div class="section-label">
+        <span class="idx">04</span><h2>外环 · 五大势力</h2><span class="en">OUTER RING SECTORS</span>
+      </div>
+
+      <div class="region-entry">
+        <div class="entry-head">
+          <span class="entry-no">04-01</span>
+          <h3>九龙</h3>
+          <span class="entry-en">KOWLOON</span>
+        </div>
+        <p class="entry-brief">
+          位于都市正东方向，大崩塌后唯一没有进行“资源重组”的地区。整个外环贫富差距最小，治安最好，民众满意度最高。辅色：红、橙。
+        </p>
+        <details>
+          <summary>展开档案</summary>
+          <div class="entry-full">
+            <p>继承了大崩塌之前的行政制度与社会分配规则。虽然因为外环局势原因不得不被一些巨企渗透与取得部分控制权，但总体而言独立自主性较高。</p>
+            <p><strong>参考风格：</strong>东亚，东南亚（中、日韩次之，南部带有东南亚色彩）。建筑风格可以掺点中式，但不要搞成古风木楼。</p>
+          </div>
+        </details>
+      </div>
+
+      <div class="region-entry">
+        <div class="entry-head">
+          <span class="entry-no">04-02</span>
+          <h3>北境重工</h3>
+          <span class="entry-en">NORTHERN HEAVY INDUSTRY</span>
+        </div>
+        <p class="entry-brief">
+          位于都市正北方向，跨度极大的能源开发与重工业企业的聚合体。大崩塌前是都市的能源主产区和最大工业区。辅色：灰砖红、锈红。
+        </p>
+        <details>
+          <summary>展开档案</summary>
+          <div class="entry-full">
+            <p>如今其区域内资产大部分被寡头所控制，各个寡头间互相防备，仅由固定周期召开的寡头圆桌会议链接为一个整体。严重的垄断与持续不断的外战使得底层物价居高不下，民众怨声载道，不过寡头们显然只关心自己的钱袋子。</p>
+            <p><strong>参考风格：</strong>东斯拉夫（俄罗斯为主）、北欧。建筑风格为粗野主义预制板楼，庞大的地下地铁，防空洞网络，水泥核防设施。可以理解为解体后的苏联或萧条时期的俄联邦，相当部分寡头其实是旧时代的干部。</p>
+          </div>
+        </details>
+      </div>
+
+      <div class="region-entry">
+        <div class="entry-head">
+          <span class="entry-no">04-03</span>
+          <h3>北联邦</h3>
+          <span class="entry-en">NORTHERN FEDERATION</span>
+        </div>
+        <p class="entry-brief">
+          位于都市西部偏北，由以高新技术和制药一类技术为主的巨型企业联合扶持的傀儡政府。辅色：白、天蓝。
+        </p>
+        <details>
+          <summary>展开档案</summary>
+          <div class="entry-full">
+            <p>行政风格更类似于技术官僚主义，在官僚主义与精英主义盛行的同时，各个公司、部门都将技术作为重要的“资产”来持有。推崇自由市场与技术至上，由各个头部企业的CEO组成的首席议会是整个市场的风向标与傀儡政府的主人。</p>
+            <p>辖区内贫富差距严重，各种理由的收费奇多，一切都在向资本服务，当然，高层们也相当青睐拥有杰出技术能力的人才。</p>
+            <p><strong>补充：</strong>治安水平可以说是一般，行政效率在九龙之外的外环政体里是最高的。精通于无人化战争。（参考风格：北美、西欧，直接参考夜之城）</p>
+          </div>
+        </details>
+      </div>
+
+      <div class="region-entry">
+        <div class="entry-head">
+          <span class="entry-no">04-04</span>
+          <h3>南联邦</h3>
+          <span class="entry-en">SOUTHERN FEDERATION</span>
+        </div>
+        <p class="entry-brief">
+          位于都市西部偏南，由大崩塌后产生的军阀为主导势力的傀儡政府。辅色：赭石红、暖橄榄绿。
+        </p>
+        <details>
+          <summary>展开档案</summary>
+          <div class="entry-full">
+            <p>地区内话事人多为大崩塌前就拥有极大话语权的人，他们作为一个派系或是家族的领袖参与政治，维持着南联邦由人情、血缘、权力构成的政治体系。其区域内黑手党文化盛行，底层人民被捆绑着参与黑手党的“家族政治”，政府的约束力形同虚设。</p>
+            <p>你所在的区域由哪个家族管辖，那哪个家族便是规矩本身。黑市、偷渡与走私在这片地方简直是司空见惯的，而本地那些名义上的警察，只是披上制服的军阀私兵与地痞。</p>
+            <p><strong>补充：</strong>治安相当差，街头环境也相当糟糕，涂鸦标语随处可见。而在这里的人们不知为何都会点跑酷的技巧，你可以看见不少青年在高楼间纵横。这片区域是整个外环里贫民窟最多的地方。（参考风格：拉丁美洲、南欧（意大利），地中海风格建筑）</p>
+          </div>
+        </details>
+      </div>
+
+      <div class="region-entry">
+        <div class="entry-head">
+          <span class="entry-no">04-05</span>
+          <h3>海防堤区</h3>
+          <span class="entry-en">SEA DEFENSE PORT</span>
+        </div>
+        <p class="entry-brief">
+          位于都市南部偏东，由大崩塌后的联合政府海军残部与海工企业联合划定的港区。政治地位中立。辅色：深海铁灰、锈赭色。
+        </p>
+        <details>
+          <summary>展开档案</summary>
+          <div class="entry-full">
+            <p>该地区由原联合海军司令部改组的舰队议会和海工区工会主导，承包了各种海上工业设备、舰艇的制造工作，并且承担着检测近海黑雨现象和维护都市近海海上作业安全的任务。辖区内可以见到大量的船坞、龙门架，而在海上可以看见数量众多的石油钻井平台，这使得他们成为了都市第二大能源产地。</p>
+            <p><strong>补充：</strong>该地区政府名义上仍是联合政府，但由于对外部资源的依赖性，无力维系原有的社会制度。虽然贫富差距没有拉开太大，但群众的生活水平相较于大崩塌前确实显著下降。沿海地区的走私偷渡使得执法部门颇为困扰。其财政有相当大一部分来自于南联邦的走私偷渡，与北联邦的灰色科研需求，这使得其政府高层实际上与中层管理有一定脱节，被迫背离了初心。</p>
+            <p>外海时常充斥着巨大的风浪，而在一些由防波堤围起来的平静湾区内，依然有着传统意义上的夏日沙滩作为旅游业存在。（参考风格：银翼杀手2049、伊比利亚半岛，沿外海数十米高的堤坝，浮动板块组成的临时监测站）</p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <!-- 05 断裂带 -->
+    <section class="doc-section" id="fault">
+      <div class="section-label">
+        <span class="idx">05</span><h2>断裂带</h2><span class="en">THE FAULT / THE FIN CUT</span>
+      </div>
+
+      <div class="region-entry">
+        <div class="entry-head">
+          <span class="entry-no">05-01</span>
+          <h3>断鳍带</h3>
+          <span class="entry-en">THE FIN CUT</span>
+        </div>
+        <p class="entry-brief">
+          地表被撕开的区域。从 -50m 平面向下，空间不稳定性随深度稳步提升。
+        </p>
+        <details>
+          <summary>展开档案</summary>
+          <div class="entry-full">
+            <p>开发人员将断鳍带比作“海”：-50m 平面即“海平面”，向下依次为光合作用层、暮光层、无光层、海沟层。越深，现实越不稳定。</p>
+            <p>断鳍带悬崖上悬挂着由各大地区联合设立的“地层研究中心”，拥有唯一一条能从“海平面”直达“海沟层”的电梯。关于各深度层的具体观测记录，仍在整理中。</p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <!-- 06 未知郊区 -->
+    <section class="doc-section" id="unknown">
+      <div class="section-label">
+        <span class="idx">06</span><h2>未知郊区 · 年代现象</h2><span class="en">ANACHRONISM / THE UNKNOWN</span>
+      </div>
+
+      <div class="region-entry">
+        <div class="entry-head">
+          <span class="entry-no">06-01</span>
+          <h3>年代现象</h3>
+          <span class="entry-en">ANACHRONISM</span>
+        </div>
+        <p class="entry-brief">
+          来自不同时空的空间碎片嵌入现实后形成的异常区域，常伴随“洋流”造成深度层之间的异常联通。
+        </p>
+        <details>
+          <summary>展开档案</summary>
+          <div class="entry-full">
+            <p>年代现象中的物理规则可能与当前世界完全不同。现象消散时，其中的物体会同步消失，除非被带离所属“年代”。</p>
+            <p>“洋流”是一种偶发现象，能使不同深度层之间发生异常性质上的联通。从无光层出发的洋流，可能导致其他层出现年代现象或非欧几何空间。</p>
+          </div>
+        </details>
+      </div>
+
+      <div class="region-entry">
+        <div class="entry-head">
+          <span class="entry-no">06-02</span>
+          <h3>衔尾蛇 · A.H.P</h3>
+          <span class="entry-en">OUROBOROS / A.H.P</span>
+        </div>
+        <p class="entry-brief">
+          活跃在未知领域的两支武装团体。衔尾蛇以摧毁核心区为目标，A.H.P 的资料尚待补全。
+        </p>
+        <details>
+          <summary>展开档案</summary>
+          <div class="entry-full">
+            <p>“衔尾蛇”起源不明，行动模式不固定，但所有已知行动都指向同一个方向：核心区。关于他们的组织结构和真正目的，档案中只有推测。</p>
+            <p>“A.H.P”（阿加雷斯之手）的记载更少。目前仅确认其活动范围与衔尾蛇有重叠，双方关系不明。</p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <footer class="doc-foot">
+      <span>黑雨 · WORLD ARCHIVE</span>
+      <a href="index.html">← 返回主页</a>
+    </footer>
+
+  </main>
+</div>
+
+<script>
+/* 左侧目录高亮逻辑 */
+(function () {
+  const links = document.querySelectorAll('.world-index ol a');
+  const sections = Array.from(links).map(a =>
+    document.querySelector(a.getAttribute('href'))
+  ).filter(Boolean);
+
+  if (!sections.length) return;
+
+  const observer = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      const id = '#' + entry.target.id;
+      links.forEach(a => a.classList.toggle('is-current', a.getAttribute('href') === id));
+    }
+  }, {
+    rootMargin: '-20% 0px -55% 0px',
+    threshold: 0
+  });
+
+  sections.forEach(sec => observer.observe(sec));
+})();
+</script>
+
+<!-- 引用外部播放器 -->
+<script src="assets/player.js" defer></script>
+
+</body>
+</html>

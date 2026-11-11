@@ -33,42 +33,13 @@ body::after{
   content:"";position:fixed;inset:0;pointer-events:none;z-index:60;opacity:.035;
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
 }
-/* 播放/暂停按钮：固定在右上角，工业风圆形 */
-.bgm-toggle {
-  position: fixed;
-  top: clamp(16px, 2vw, 104px);
-  right: clamp(20px, 4vw, 24px);
-  z-index: 95; /* 高于顶栏，确保可点击 */
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  border: 1px solid var(--line);
-  background: rgba(15, 5, 5, 0.6);
-  backdrop-filter: blur(8px);
-  color: var(--ink-dim);
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  transition: color 0.3s, border-color 0.3s, background 0.3s;
-}
 
-.bgm-toggle:hover {
-  color: var(--ink);
-  border-color: rgba(201, 35, 35, 0.45);
-  background: rgba(52, 0, 0, 0.7);
-}
-
-/* 图标切换：默认显示“播放”，播放中显示“暂停” */
-.bgm-toggle .icon-pause { display: none; }
-.bgm-toggle.playing .icon-play { display: none; }
-.bgm-toggle.playing .icon-pause { display: block; }
 /* ============ 顶部玻璃导航 ============ */
 .nav{
   position:fixed;inset:0 0 auto 0;z-index:50;display:flex;align-items:center;
   justify-content:space-between;padding:18px clamp(20px,4vw,56px);
   background:transparent;border-bottom:1px solid transparent;
   transition:background .5s,border-color .5s,backdrop-filter .5s;
-
 }
 .nav.solid{
   background:rgba(65, 3, 11, 0.749);backdrop-filter:blur(18px) saturate(140%);
@@ -86,7 +57,7 @@ body::after{
 /* ============ 首屏 ============ */
 .hero{position:relative;min-height:100svh;display:grid;place-items:center;overflow:hidden}
 .hero-bg{
-  position:absolute;inset:-10%;z-index:0;
+  position:absolute;inset:-1%;z-index:0;
   background:
     radial-gradient(60% 50% at 70% 20%,rgba(255, 0, 0, 0.347),transparent 70%),
     radial-gradient(50% 40% at 20% 80%,rgba(216,178,106,.14),transparent 70%),
@@ -94,7 +65,6 @@ body::after{
   background-size:cover;background-position:center;
   will-change:transform;
 }
-/* 有图就把 hero.jpg 放到 assets/ ，下面这行会自动盖上去 */
 .hero-bg.has-image{
   background-image:linear-gradient(180deg,rgba(5,9,15,.35),rgba(5,9,15,.92)),var(--hero-img);
 }
@@ -185,15 +155,20 @@ section{scroll-margin-top:96px;position:relative;padding:clamp(90px,12vh,160px) 
 .place figcaption small{display:block;font-family:var(--mono);font-size:10px;color:var(--gold);letter-spacing:.3em;margin-top:6px}
 .place:hover img{transform:scale(1.05)}
 
-/* 地点卡片整图可点击（同角色卡逻辑） */
+/* 地点卡片整图可点击 */
 .place a{display:block;width:100%;height:100%}
 .place a:focus-visible{outline:1px solid var(--gold);outline-offset:-2px}
 
 /* 时间线 */
 .timeline{position:relative;padding-left:34px}
-.timeline::before{content:"";position:absolute;left:6px;top:4px;bottom:4px;width:1px;background:linear-gradient(180deg,var(--cyan),rgba(216,178,106,.5),transparent)}
+.timeline::before{
+  content:"";position:absolute;left:5px;top:4px;bottom:4px;width:16px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='170' shape-rendering='crispEdges'%3E%3Cline x1='1' y1='0' x2='1' y2='170' stroke='rgba(255,0,0,0.15)' stroke-width='1'/%3E%3Cline x1='1' y1='0.5' x2='15' y2='0.5' stroke='%23c92323' stroke-width='1'/%3E%3Cline x1='1' y1='17.5' x2='4' y2='17.5' stroke='%2369561d' stroke-width='1'/%3E%3Cline x1='1' y1='34.5' x2='4' y2='34.5' stroke='%2369561d' stroke-width='1'/%3E%3Cline x1='1' y1='51.5' x2='4' y2='51.5' stroke='%2369561d' stroke-width='1'/%3E%3Cline x1='1' y1='68.5' x2='10' y2='68.5' stroke='%23b57c16' stroke-width='1'/%3E%3Cline x1='1' y1='85.5' x2='4' y2='85.5' stroke='%2369561d' stroke-width='1'/%3E%3Cline x1='1' y1='102.5' x2='4' y2='102.5' stroke='%2369561d' stroke-width='1'/%3E%3Cline x1='1' y1='119.5' x2='4' y2='119.5' stroke='%2369561d' stroke-width='1'/%3E%3Cline x1='1' y1='136.5' x2='4' y2='136.5' stroke='%2369561d' stroke-width='1'/%3E%3Cline x1='1' y1='153.5' x2='4' y2='153.5' stroke='%2369561d' stroke-width='1'/%3E%3C/svg%3E");
+  background-repeat:repeat-y;
+  background-position:0 0;
+}
 .tl-item{position:relative;padding:0 0 38px 0}
-.tl-item::before{content:"";position:absolute;left:-34px;top:7px;width:9px;height:9px;border-radius:50%;background:var(--bg);border:1px solid var(--cyan);box-shadow:0 0 12px rgba(111,214,255,.6)}
+.tl-item::before{content:"";position:absolute;left:-32.5px;top:7px;width:9px;height:9px;border-radius:50%;background:var(--bg);border:1px solid var(--cyan);box-shadow:0 0 12px rgba(201,35,35,.6)}
 .tl-item time{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--gold)}
 .tl-item h4{font-family:var(--serif);font-size:19px;font-weight:500;margin:8px 0 6px;letter-spacing:.05em}
 .tl-item p{color:var(--ink-dim);font-size:14px;line-height:1.9;max-width:640px}
@@ -224,7 +199,7 @@ footer{
   .reveal{opacity:1;transform:none}
 }
 
-/* ===== 玻璃雨层（重做：参考 222.html） ===== */
+/* ===== 玻璃雨层 ===== */
 .glass-sheen{
   position:fixed;inset:0;z-index:41;pointer-events:none;mix-blend-mode:screen;
   background:
@@ -237,14 +212,7 @@ footer{
   background:radial-gradient(ellipse at center,transparent 52%,rgba(0,0,0,.5) 100%);
 }
 
-/* 时间线节点：黑色雨滴 + 红边 */
-
-.tl-item::after{
-  content:"";position:absolute;left:-32px;top:-4px;width:3px;height:7px;
-  border-radius:50% 50% 0 0;background:linear-gradient(180deg,transparent,rgba(229,31,42,.85));
-}
-
-/* 浮现：1999 式遮罩上推 + 轻微缩放，文字逐行错开 */
+/* 浮现动画 */
 .reveal{
   opacity:0;transform:translate3d(0,34px,0) scale(.99);clip-path:inset(0 0 100% 0);
   transition:opacity 1.05s cubic-bezier(.16,1,.3,1),transform 1.05s cubic-bezier(.16,1,.3,1),clip-path 1.15s cubic-bezier(.16,1,.3,1);
@@ -297,37 +265,343 @@ footer{
 .section-cta:hover{background:var(--ink);color:#0b0a0c;border-color:var(--ink);transform:translateY(-2px)}
 .section-cta:hover::after{transform:translateX(5px)}
 
+/* ============================================================
+   加载界面（Loader）
+   ============================================================ */
+html.is-loading,html.is-loading body{overflow:hidden}
+
+.loader{
+  position:fixed;inset:0;z-index:9999;
+  display:grid;place-items:center;
+  background:#000;
+  opacity:1;visibility:visible;
+  transition:opacity .9s cubic-bezier(.4,0,.2,1),visibility .9s;
+}
+.loader.is-done{opacity:0;visibility:hidden;pointer-events:none}
+
+.loader-inner{
+  display:flex;flex-direction:column;align-items:center;
+  gap:clamp(20px,3.4vh,30px);
+}
+
+.loader-gif{
+  width:clamp(140px,22vw,230px);
+  height:auto;
+  user-select:none;-webkit-user-drag:none;
+  mix-blend-mode:screen;
+}
+
+.loader-bar{
+  position:relative;
+  width:clamp(120px,18vw,190px);height:1px;
+  background:rgba(255,60,60,.16);
+  overflow:hidden;
+}
+.loader-bar i{
+  position:absolute;top:0;left:0;bottom:0;width:38%;
+  background:linear-gradient(90deg,transparent,#ff3b3b,transparent);
+  animation:loaderSlide 1.4s cubic-bezier(.55,.1,.45,.9) infinite;
+  will-change:transform;
+}
+@keyframes loaderSlide{
+  0%{transform:translateX(-120%)}
+  100%{transform:translateX(300%)}
+}
+
+.loader-text{
+  font-family:var(--mono);font-size:10px;letter-spacing:.5em;
+  padding-left:.5em;
+  color:rgba(255,110,110,.55);text-transform:uppercase;
+}
+
+@media (prefers-reduced-motion:reduce){
+  .loader-bar i{animation:none!important;width:100%;background:#ff3b3b;opacity:.45}
+}
+
+/* ===== 幕后板块 ===== */
+.behind-card{
+  display:flex;align-items:center;justify-content:space-between;gap:clamp(24px,5vw,60px);
+  padding:clamp(28px,5vw,48px) clamp(24px,5vw,52px);
+  text-decoration:none;color:inherit;cursor:pointer;
+  transition:border-color .45s cubic-bezier(.16,1,.3,1),transform .45s cubic-bezier(.16,1,.3,1),background .45s;
+}
+.behind-card:hover{
+  border-color:rgba(201,35,35,.4);
+  transform:translateY(-3px);
+  background:rgba(65,3,11,.4);
+}
+.behind-copy .kicker{
+  font-family:var(--mono);font-size:10px;letter-spacing:.35em;color:var(--gold);
+  text-transform:uppercase;margin-bottom:14px;
+}
+.behind-copy h3{
+  font-family:var(--serif);font-size:clamp(22px,3vw,32px);font-weight:500;
+  letter-spacing:.06em;margin-bottom:12px;
+}
+.behind-copy p{
+  font-size:14px;line-height:1.9;color:var(--ink-dim);max-width:520px;
+}
+.behind-cta{
+  display:inline-block;margin-top:18px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.25em;color:var(--ink);
+  border-bottom:1px solid var(--gold);padding-bottom:3px;
+  transition:letter-spacing .4s;
+}
+.behind-card:hover .behind-cta{letter-spacing:.35em}
+.behind-mark{
+  display:flex;gap:6px;flex-shrink:0;
+  font-family:var(--serif);font-size:clamp(56px,10vw,120px);font-weight:600;
+  line-height:.8;color:rgba(201,35,35,.12);
+  user-select:none;pointer-events:none;
+}
+@media (max-width:600px){
+  .behind-card{flex-direction:column;align-items:flex-start}
+  .behind-mark{display:none}
+}
+
+/* ==========================================
+   动效样式
+   ========================================== */
+
+/* 1. 光标光晕 */
+.cursor-glow{
+  position:fixed;inset:0;pointer-events:none;z-index:45;
+  opacity:0;transition:opacity .5s;
+  background:radial-gradient(
+    560px circle at var(--mx,50%) var(--my,50%),
+    rgba(201,35,35,.10) 0%,
+    rgba(201,35,35,.04) 35%,
+    transparent 60%
+  );
+  mix-blend-mode:screen;
+}
+body:hover .cursor-glow{opacity:1}
+
+/* 2. 卡片倾斜 (修复响应延迟版) */
+.tilt {
+  position:relative;
+  transition: transform 0.1s cubic-bezier(.16,1,.3,1), 
+              border-color 0.4s, box-shadow 0.4s !important;
+  will-change: transform;
+}
+.tilt::before{
+  content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
+  opacity:0;transition:opacity .35s;
+  background:radial-gradient(
+    220px circle at var(--tx,50%) var(--ty,50%),
+    rgba(255,180,180,.14),
+    transparent 55%
+  );
+  mix-blend-mode:screen;
+  border-radius:inherit;
+}
+.tilt:hover::before{opacity:1}
+
+/* 4. 黑雨 Canvas */
+#rain-canvas{
+  position:fixed;inset:0;width:100%;height:100%;
+  pointer-events:none;z-index:38;
+  opacity:.5;
+}
+
+/* 5. 链接下划线生长 */
+.link-grow{
+  position:relative;display:inline-block;
+}
+.link-grow::after{
+  content:"";position:absolute;left:0;bottom:-2px;
+  width:100%;height:1px;background:var(--gold);
+  transform:scaleX(0);transform-origin:right;
+  transition:transform .4s cubic-bezier(.16,1,.3,1);
+}
+.link-grow:hover::after{
+  transform:scaleX(1);transform-origin:left;
+}
+
+/* 降级处理（移动端/无障碍） */
+@media (hover:none),(prefers-reduced-motion:reduce){
+  .cursor-glow,#rain-canvas{display:none}
+  .tilt,.magnetic{transform:none!important}
+  .tilt::before{display:none}
+}
+
+/* =========================================================
+   黑雨 · 悬浮歌单播放器 (修复避开顶栏问题)
+   ========================================================= */
+.music-widget {
+  position: fixed;
+  top: 84px; /* 下移避开顶栏 */
+  right: clamp(16px, 4vw, 24px);
+  z-index: 95;
+  width: 240px;
+  background: rgba(15, 5, 5, 0.85);
+  backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.music-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  height: 44px;
+  box-sizing: border-box;
+}
+
+.music-toggle,
+.music-next,
+.music-rain {
+  background: none;
+  border: none;
+  color: var(--ink-dim);
+  cursor: pointer;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  transition: color 0.3s, opacity 0.3s;
+}
+.music-toggle:hover,
+.music-next:hover,
+.music-rain:hover { color: var(--ink); }
+
+.music-toggle .icon-pause { display: none; }
+.music-toggle.playing .icon-play { display: none; }
+.music-toggle.playing .icon-pause { display: block; }
+
+/* 雨声按钮专属样式 */
+.music-rain {
+  opacity: 0.4; /* 默认半透明，表示未开启 */
+}
+.music-rain.is-active {
+  color: var(--cyan);
+  opacity: 1;
+  filter: drop-shadow(0 0 5px rgba(201,35,35,0.6));
+}
+
+.music-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.music-title {
+  font-family: var(--serif);
+  font-size: 12px;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+.music-artist {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--gold);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 歌单列表（默认折叠隐藏） */
+.music-list {
+  list-style: none;
+  max-height: 0;
+  opacity: 0;
+  overflow-y: auto;
+  transition: max-height 0.4s ease, opacity 0.3s ease;
+  border-top: 1px solid var(--line);
+  background: rgba(10, 3, 3, 0.6);
+}
+
+/* 鼠标悬浮或点击展开 */
+.music-widget:hover .music-list,
+.music-widget.is-open .music-list {
+  max-height: 260px;
+  opacity: 1;
+}
+
+.music-list li {
+  padding: 10px 14px;
+  font-family: var(--sans);
+  font-size: 11px;
+  color: var(--ink-dim);
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 0, 0, 0.05);
+  transition: all 0.25s;
+  display: flex;
+  justify-content: space-between;
+}
+.music-list li:hover {
+  background: rgba(201, 35, 35, 0.15);
+  color: var(--ink);
+  padding-left: 18px;
+}
+.music-list li.is-active {
+  color: var(--cyan);
+  background: rgba(201, 35, 35, 0.1);
+  font-weight: 500;
+}
+
+/* 滚动条美化 */
+.music-list::-webkit-scrollbar { width: 4px; }
+.music-list::-webkit-scrollbar-track { background: transparent; }
+.music-list::-webkit-scrollbar-thumb {
+  background: rgba(201, 35, 35, 0.4);
+  border-radius: 2px;
+}
+
+@media (max-width: 600px) {
+  .music-widget { 
+    width: 200px; 
+    top: 72px; /* 移动端导航栏较矮，稍微上提一点 */
+  }
+  .music-widget:hover .music-list,
+  .music-widget.is-open .music-list { max-height: 200px; }
+}
+
 </style>
 </head>
 <body>
+
+<!-- 新增：光标光晕与黑雨Canvas -->
+<div class="cursor-glow" aria-hidden="true"></div>
+<canvas id="rain-canvas" aria-hidden="true"></canvas>
+
+<!-- ============ 加载界面 ============ -->
+<div class="loader" id="loader" role="status" aria-live="polite" aria-label="页面加载中">
+  <div class="loader-inner">
+    <img class="loader-gif" src="assets/loading.gif" alt="" draggable="false">
+    <div class="loader-bar"><i></i></div>
+    <div class="loader-text">Loading</div>
+  </div>
+</div>
+<script>document.documentElement.classList.add('is-loading');</script>
+
 <div class="glass-sheen" aria-hidden="true"></div>
 <div class="vignette" aria-hidden="true"></div>
 
 <nav class="nav solid" id="nav">
   <div class="brand"><span class="dot"></span><b>黑雨</b><span>BLACK RAIN</span></div>
   <ul>
-    <li><a href="#world">世界</a></li>
+    <li><a href="#world" class="link-grow">世界</a></li>
     <li><a href="#cast">角色</a></li>
     <li><a href="#places">地点</a></li>
     <li><a href="#timeline">时间线</a></li>
   </ul>
-  
-  <button id="bgm-toggle" class="bgm-toggle" aria-label="播放或暂停背景音乐">
-  <svg class="icon-play" viewBox="0 0 24 24" width="18" height="18">
-    <path d="M8 5v14l11-7z" fill="currentColor"/>
-  </svg>
-  <svg class="icon-pause" viewBox="0 0 24 24" width="18" height="18">
-    <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" fill="currentColor"/>
-  </svg>
-</button>
 </nav>
 
 <header class="hero">
-  <div class="hero-bg has-image" id="heroBg" style="--hero-img: url(&quot;assets/hero.jpg&quot;); transform: translate3d(0px, 167px, 0px);"></div>
+  <div class="hero-bg has-image" id="heroBg" style="--hero-img: url(&quot;assets/hero.webp&quot;); transform: translate3d(0px, 167px, 0px);"></div>
   <div class="hero-inner">
     <div class="kicker">A World Beneath the Rain</div>
     <h1>黑雨<span>BALCK RAIN</span></h1>
-    <p>因为《天启日》六年没有出续集所以搞了一个OC世界观<br>当前版本：“异轨战略”<br>(请手动打开右上角音乐)</p>
+    <p>雨落无声，带走目及之处所有光明<br>当前版本：“异轨战略”<br>(请手动打开右上角音乐)</p>
   </div>
   <div class="scroll-hint"><span>SCROLL DOWN</span><i></i></div>
 </header>
@@ -338,20 +612,20 @@ footer{
   </div>
   <div class="about">
     <div class="copy reveal">
-      <p>自天启日之后，人类只能聚居在一片城邦。世界各处都可能下<strong>「黑雨」</strong>。而人类存活所依赖的政体也叫<strong>黑雨</strong>。</p>
+      <p>自天启日之后，人类只能聚居在一片城邦。世界各处都可能下<strong>「黑雨」</strong>。而人类存活所依赖的政体也叫<strong>「黑雨」</strong>。</p>
       
       
       <ul class="rule-list">
-        <li><b>I</b><span>黑雨会引发现实扭曲</span></li>
-        <li><b>II</b><span>黑雨可以带来灾难</span></li>
+        <li><b>I</b><span><strong>「黑雨」</strong>会引发现实扭曲，可以带来灾难</span></li>
+        <li><b>II</b><span><strong>「黑雨」</strong>限制着人类</span></li>
         <li><b>III</b><span>无论哪一个黑雨都有上述特性</span></li>
       </ul>
     </div>
-    <figure class="figure glass reveal" data-delay="1">
-      <img src="assets/world.jpg" alt="世界概念图" onerror="this.style.display='none'">
+    <figure class="figure glass reveal">
+      <img src="assets/world.webp" alt="世界概念图" onerror="this.style.display='none'">
     </figure>
   </div>
-  <a class="section-cta" href="#">查看详情</a>
+  <a class="section-cta magnetic" href="world.html">查看详情</a>
 </section>
 
 <section id="cast">
@@ -359,23 +633,23 @@ footer{
     <span class="idx">02</span><h2>角色</h2><span class="en">Cast</span>
   </div>
   <div class="cards">
-    <article class="card glass reveal">
+    <article class="card glass reveal tilt">
       <span class="tag">PROTAGONIST</span>
-      <a href="character-1.html"><img src="assets/char-1.jpg" alt="主角" onerror="this.style.display='none'"></a>
-      <div class="meta"><h3>空着</h3><p>由你们书写</p></div>
+      <a href="character-1.html"><img src="assets/char-1.webp" alt="主角" onerror="this.style.display='none'"></a>
+      <div class="meta"><h3>空着</h3><p>当雨落下</p></div>
     </article>
-    <article class="card glass reveal" data-delay="1">
+    <article class="card glass reveal tilt" data-delay="1">
       <span class="tag">MENTOR</span>
-      <a href="character-2.html"><img src="assets/char-2.jpg" alt="老鲸歌者" onerror="this.style.display='none'"></a>
-      <div class="meta"><h3>也空着</h3><p>你们快写吧</p></div>
+      <a href="character-2.html"><img src="assets/char-2.webp" alt="老鲸歌者" onerror="this.style.display='none'"></a>
+      <div class="meta"><h3>天气预报员</h3><p>汇报<strong>黑雨的动向</strong></p></div>
     </article>
-    <article class="card glass reveal" data-delay="2">
+    <article class="card glass reveal tilt" data-delay="2">
       <span class="tag">ANTAGONIST</span>
-      <a href="character-3.html"><img src="assets/char-3.jpg" alt="议会代表" onerror="this.style.display='none'"></a>
-      <div class="meta"><h3>我的意思是</h3><p>画画也可以</p></div>
+      <a href="character-3.html"><img src="assets/char-3.webp" alt="议会代表" onerror="this.style.display='none'"></a>
+      <div class="meta"><h3>负伞者</h3><p>负伞</p></div>
     </article>
   </div>
-  <a class="section-cta" href="#">查看详情</a>
+  <a class="section-cta magnetic" href="archive.html">查看详情</a>
 </section>
 
 <section id="places">
@@ -383,24 +657,24 @@ footer{
     <span class="idx">03</span><h2>地点</h2><span class="en">Locations</span>
   </div>
     <div class="places">
-    <figure class="place wide glass reveal">
-      <a href="location-1.html"><img src="assets/place-1.jpg" alt="烬岛" onerror="this.style.display='none'"></a>
-      <figcaption>核心区<small>CORE</small></figcaption>
+    <figure class="place wide glass reveal tilt">
+      <a href="map.html"><img src="assets/hero.webp" alt="核心区" onerror="this.style.display='none'"></a>
+      <figcaption>核心区（巴别塔及周边）<small>CORE</small></figcaption>
     </figure>
-    <figure class="place glass reveal" data-delay="1">
-      <a href="location-2.html"><img src="assets/place-2.jpg" alt="盐岛" onerror="this.style.display='none'"></a>
-      <figcaption>周围城区（次核心区）<small>CITY</small></figcaption>
+    <figure class="place glass reveal tilt" data-delay="1">
+      <a href="map.html"><img src="assets/place-2.webp" alt="周围城区" onerror="this.style.display='none'"></a>
+      <figcaption>内环<small>CITY</small></figcaption>
     </figure>
-    <figure class="place glass reveal" data-delay="2">
-      <a href="location-3.html"><img src="assets/place-3.jpg" alt="静岛" onerror="this.style.display='none'"></a>
-      <figcaption>裂隙及其附近<small>THE CUT</small></figcaption>
+    <figure class="place glass reveal tilt" data-delay="2">
+      <a href="map.html"><img src="assets/place-3.webp" alt="裂隙" onerror="this.style.display='none'"></a>
+      <figcaption>郊区<small>THE UNKNOWN</small></figcaption>
     </figure>
-    <figure class="place wide glass reveal" data-delay="3">
-      <a href="location-4.html"><img src="assets/place-4.jpg" alt="长歌" onerror="this.style.display='none'"></a>
-      <figcaption>郊外未知区域<small>THE UNKOWN</small></figcaption>
+    <figure class="place wide glass reveal tilt" data-delay="3">
+      <a href="map.html"><img src="assets/place-4.webp" alt="未知区域" onerror="this.style.display='none'"></a>
+      <figcaption>断裂带与外环<small>THE CUT</small></figcaption>
     </figure>
   </div>
-  <a class="section-cta" href="#">查看详情</a>
+  <a class="section-cta magnetic" href="map.html">查看详情</a>
 </section>
 
 <section id="timeline">
@@ -408,27 +682,128 @@ footer{
     <span class="idx">04</span><h2>时间线（这里还没写完）</h2><span class="en">TIMELINE</span>
   </div>
   <div class="timeline">
-    <div class="tl-item reveal"><time>潮历 0 年</time><h4>天启日</h4><p>，人类失去。</p></div>
-    <div class="tl-item reveal"><time>潮历 47 年</time><h4>大暴雨</h4><p>人类学会。</p></div>
-    <div class="tl-item reveal"><time>潮历 210 年</time><h4>特大暴雨</h4><p>。</p></div>
-    <div class="tl-item reveal"><time>潮历 296 年</time><h4>日蚀</h4><p>人语。</p></div>
-    <div class="tl-item reveal"><time>潮历 300 年</time><h4>日后谈</h4><p>最后。</p></div>
+    <div class="tl-item reveal"><time>元 年</time><h4>天启日</h4><p>失去。</p></div>
+    <div class="tl-item reveal"><time>010 年</time><h4>巴别塔协议</h4><p>人类团结。</p></div>
+    <div class="tl-item reveal"><time>073 年</time><h4>第二次特大暴雨</h4><p>大崩塌。</p></div>
+    <div class="tl-item reveal"><time>090 年</time><h4>伞节点基本部署完成</h4><p>生活还要继续。</p></div>
+    <div class="tl-item reveal"><time>098 年至今</time><h4>你们的舞台</h4><p>由你们书写未来的历史。</p></div>
   </div>
-  <a class="section-cta" href="#">查看详情</a>
+  <a class="section-cta magnetic" href="timeline.html">查看详情</a>
 </section>
+
+<section id="behind">
+  <div class="section-head reveal">
+    <span class="idx">05</span><h2>幕后</h2><span class="en">BEHIND THE SCENES</span>
+  </div>
+  <a class="behind-card glass reveal" href="behind-scenes.html">
+    <div class="behind-copy">
+      <div class="kicker">CREATOR'S NOTE / 创作手记</div>
+      <h3>黑雨在落下前</h3>
+      <p>记录这个世界从第一滴雨开始的思考。</p>
+      <span class="behind-cta">阅读幕后手记 →</span>
+    </div>
+    <div class="behind-mark" aria-hidden="true">
+      <span>B</span><span>R</span>
+    </div>
+  </a>
+</section>
+
 
 <footer>
   <span>黑雨 · TRY YIGUI</span>
   <span>© 2026 · A PERSONAL WORLD BUILDING PROJECT</span>
 </footer>
 
-<!-- 背景音乐：放在 body 末尾，循环播放，默认音量 0.3（30%） -->
+<!-- ===== 悬浮播放器容器（移出 nav，放在底部） ===== -->
+<div class="music-widget" id="music-widget">
+  
+  <!-- 主按钮与当前歌曲信息 -->
+  <div class="music-bar">
+    <button class="music-toggle" id="music-toggle" aria-label="播放或暂停">
+      <svg class="icon-play" viewBox="0 0 24 24" width="18" height="18"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+      <svg class="icon-pause" viewBox="0 0 24 24" width="18" height="18"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" fill="currentColor"/></svg>
+    </button>
+    <div class="music-info">
+      <span class="music-title" id="music-title">黑雨 · OST</span>
+      <span class="music-artist" id="music-artist">LOADING...</span>
+    </div>
+    <!-- 新增：雨声开关 -->
+    <button class="music-rain" id="music-rain" aria-label="开关雨声" title="开关环境雨声">
+      <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 2.5c-3.3 0-6 2.7-6 6 0 2.1 1.1 4 2.8 5l-1.3 2.8c-.2.4 0 .9.4 1.1.4.2.9 0 1.1-.4l1.5-3.2c.5.1 1 .2 1.5.2s1-.1 1.5-.2l1.5 3.2c.2.4.7.6 1.1.4.4-.2.6-.7.4-1.1l-1.3-2.8c1.7-1 2.8-2.9 2.8-5 0-3.3-2.7-6-6-6zm0 9c-1.7 0-3-1.3-3-3s1.3-3 3-3 3 1.3 3 3-1.3 3-3 3z" fill="currentColor"/></svg>
+    </button>
+    <button class="music-next" id="music-next" aria-label="下一首">
+      <svg viewBox="0 0 24 24" width="16" height="16"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" fill="currentColor"/></svg>
+    </button>
+  </div>
 
-<audio id="bgm-player" src="assets/bgm.mp3" loop preload="auto"></audio>
-<audio id="rain-player" src="assets/rain-loop.mp3" loop preload="auto" ></audio>
+  <!-- 展开的歌单列表 -->
+  <ul class="music-list" id="music-list">
+    <!-- 由 JS 动态生成 -->
+  </ul>
 
+</div>
+
+<!-- 音频标签：bgm 和 rain 保持独立 -->
+<audio id="bgm-player" loop preload="auto"></audio>
+<audio id="rain-player" src="assets/music/rain-loop.opus" loop preload="auto"></audio>
 
 <script>
+/* ============================================================
+   加载界面：等所有可加载资源就绪后再淡出
+   ============================================================ */
+(function () {
+  const loader = document.getElementById('loader');
+  if (!loader) return;
+
+  const root       = document.documentElement;
+  const MIN_SHOW   = sessionStorage.getItem('blackrain:player') ? 0 : 700;
+  const MAX_WAIT   = 12000;
+  const startedAt  = Date.now();
+  let   closed     = false;
+
+  function closeLoader() {
+    if (closed) return;
+    closed = true;
+
+    const rest = Math.max(0, MIN_SHOW - (Date.now() - startedAt));
+
+    setTimeout(() => {
+      loader.classList.add('is-done');
+      root.classList.remove('is-loading');
+      setTimeout(() => loader.remove(), 1000);
+    }, rest);
+  }
+
+  const pageReady = new Promise(resolve => {
+    if (document.readyState === 'complete') resolve();
+    else window.addEventListener('load', resolve, { once: true });
+  });
+
+  const audioReady = Promise.all(
+    Array.from(document.querySelectorAll('audio')).map(audio => new Promise(resolve => {
+      if (audio.readyState >= 3) return resolve();
+
+      let done = false;
+      const finish = () => { if (!done) { done = true; resolve(); } };
+
+      audio.addEventListener('canplaythrough', finish, { once: true });
+      audio.addEventListener('loadeddata',     finish, { once: true });
+      audio.addEventListener('error',          finish, { once: true });
+      setTimeout(finish, 6000);
+    }))
+  );
+
+  Promise.race([
+    Promise.all([pageReady, audioReady]),
+    new Promise(resolve => setTimeout(resolve, MAX_WAIT))
+  ]).then(closeLoader);
+
+  window.addEventListener('pageshow', e => {
+    if (e.persisted) { loader.classList.add('is-done'); root.classList.remove('is-loading'); }
+  });
+})();
+
+
 /* 导航滚动变玻璃 */
 const nav = document.getElementById('nav');
 const onScroll = () => nav.classList.toggle('solid', window.scrollY > 40);
@@ -450,74 +825,50 @@ const io = new IntersectionObserver((entries) => {
 }, {threshold: 0.14, rootMargin: '0px 0px -8% 0px'});
 document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
-/* 首屏内元素立即显示，避免截图/无滚动时空白 */
+/* 首屏内元素立即显示 */
 document.querySelectorAll('.reveal').forEach(el => {
   const r = el.getBoundingClientRect();
   if (r.top < innerHeight * 0.95) el.classList.add('in');
 });
 setTimeout(() => document.querySelectorAll('.reveal').forEach(el => el.classList.add('in')), 2500);
 
-
-/* 有 hero.jpg 就自动用作首屏背景 */
+/* 有 hero.webp 就自动用作首屏背景 */
 const probe = new Image();
 probe.onload = () => {
-  heroBg.style.setProperty('--hero-img', `url("assets/hero.jpg")`);
+  heroBg.style.setProperty('--hero-img', `url("assets/hero.webp")`);
   heroBg.classList.add('has-image');
 };
-probe.src = 'assets/hero.jpg';
+probe.src = 'assets/hero.webp';
 
-
+/* =========================================================
+   音效绑定
+   ========================================================= */
 (function () {
-  const bgm  = document.getElementById('bgm-player');
-  const rain = document.getElementById('rain-player');
-  const toggle = document.getElementById('bgm-toggle');
-
-  // 音量分层：BGM 为主体，雨声作底噪
-  bgm.volume  = 0.3;   // 30%
-  rain.volume = 0.13;  // 约 BGM 的 40%，按素材实际响度再微调
-
-  // 同步播放 / 暂停
-  toggle.addEventListener('click', () => {
-    if (bgm.paused) {
-      bgm.play().catch(console.warn);
-      rain.play().catch(console.warn);
-    } else {
-      bgm.pause();
-      rain.pause();
+  // 1. 按钮点击音效
+  document.addEventListener('click', e => {
+    if (e.target.closest('a') || e.target.closest('button')) {
+      if (typeof window.playClick === 'function') window.playClick();
     }
   });
 
-  // 图标状态：任一开始播放就算“播放中”
-  const syncIcon = () => {
-    toggle.classList.toggle('playing', !bgm.paused || !rain.paused);
-  };
-  bgm.addEventListener('play', syncIcon);
-  bgm.addEventListener('pause', syncIcon);
-  rain.addEventListener('play', syncIcon);
-  rain.addEventListener('pause', syncIcon);
-
-  // 切后台时都暂停，回来后恢复（只有用户主动播放过才恢复）
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-      bgm.pause();
-      rain.pause();
-    } else if (bgm.dataset.userPlayed === 'true') {
-      bgm.play().catch(() => {});
-      rain.play().catch(() => {});
+  // 2. 板块进入视口音效
+  const sfxObserver = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (entry.isIntersecting) {
+        if (entry.target.classList.contains('section-head') && typeof window.playTick === 'function') {
+          window.playTick();
+        }
+      }
     }
-  });
+  }, { threshold: 0.5 });
 
-  toggle.addEventListener('click', () => {
-    if (!bgm.paused) bgm.dataset.userPlayed = 'true';
-  });
+  document.querySelectorAll('.section-head').forEach(el => sfxObserver.observe(el));
 })();
-
-
-
 </script>
 
-
-
-
+<!-- 引入各类脚本 -->
+<script src="assets/motion.js" defer></script>
+<script src="assets/player.js" defer></script>
+<script src="assets/sfx.js" defer></script>
 
 </body></html>

@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>时间线 · 黑雨 / CHRONICLE</title>
+<style>
+:root{
+  --bg:#0f0505;
+  --ink:#f6abab;
+  --ink-dim:#ffe2f2;
+  --gold:#69561d;
+  --cyan:#c92323;
+  --line:rgba(255,0,0,.14);
+  --glass:rgba(52,0,0,.566);
+  --serif:"Noto Serif SC","Songti SC","Source Han Serif SC",Georgia,serif;
+  --sans:"Inter","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --mono:"JetBrains Mono","SFMono-Regular",Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--ink);font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;min-height:100svh;
+}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+
+/* 颗粒 + 暗角 */
+body::after{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:100;opacity:.035;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:99;
+  background:radial-gradient(ellipse at 50% 40%,transparent 40%,rgba(0,0,0,.68) 100%);
+}
+
+/* =========================================================
+   黑雨 · 悬浮歌单播放器
+   ========================================================= */
+.music-widget {
+  position: fixed;
+  top: 84px;
+  right: clamp(16px, 4vw, 24px);
+  z-index: 95;
+  width: 240px;
+  background: rgba(15, 5, 5, 0.85);
+  backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.music-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  height: 44px;
+  box-sizing: border-box;
+}
+
+.music-toggle,
+.music-next,
+.music-rain {
+  background: none;
+  border: none;
+  color: var(--ink-dim);
+  cursor: pointer;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  transition: color 0.3s, opacity 0.3s;
+}
+.music-toggle:hover,
+.music-next:hover,
+.music-rain:hover { color: var(--ink); }
+
+.music-toggle .icon-pause { display: none; }
+.music-toggle.playing .icon-play { display: none; }
+.music-toggle.playing .icon-pause { display: block; }
+
+.music-rain {
+  opacity: 0.4;
+}
+.music-rain.is-active {
+  color: var(--cyan);
+  opacity: 1;
+  filter: drop-shadow(0 0 5px rgba(201,35,35,0.6));
+}
+
+.music-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.music-title {
+  font-family: var(--serif);
+  font-size: 12px;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+.music-artist {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--gold);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.music-list {
+  list-style: none;
+  max-height: 0;
+  opacity: 0;
+  overflow-y: auto;
+  transition: max-height 0.4s ease, opacity 0.3s ease;
+  border-top: 1px solid var(--line);
+  background: rgba(10, 3, 3, 0.6);
+}
+
+.music-widget:hover .music-list,
+.music-widget.is-open .music-list {
+  max-height: 260px;
+  opacity: 1;
+}
+
+.music-list li {
+  padding: 10px 14px;
+  font-family: var(--sans);
+  font-size: 11px;
+  color: var(--ink-dim);
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 0, 0, 0.05);
+  transition: all 0.25s;
+  display: flex;
+  justify-content: space-between;
+}
+.music-list li:hover {
+  background: rgba(201, 35, 35, 0.15);
+  color: var(--ink);
+  padding-left: 18px;
+}
+.music-list li.is-active {
+  color: var(--cyan);
+  background: rgba(201, 35, 35, 0.1);
+  font-weight: 500;
+}
+
+.music-list::-webkit-scrollbar { width: 4px; }
+.music-list::-webkit-scrollbar-track { background: transparent; }
+.music-list::-webkit-scrollbar-thumb {
+  background: rgba(201, 35, 35, 0.4);
+  border-radius: 2px;
+}
+
+@media (max-width: 600px) {
+  .music-widget { width: 200px; top: 72px; }
+  .music-widget:hover .music-list,
+  .music-widget.is-open .music-list { max-height: 200px; }
+}
+
+/* ===== 顶栏 ===== */
+.topbar{
+  position:fixed;inset:0 0 auto 0;z-index:90;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px clamp(18px,4vw,52px);
+  background:rgba(15,5,5,.72);backdrop-filter:blur(16px) saturate(140%);
+  border-bottom:1px solid var(--line);
+}
+.back{
+  display:inline-flex;align-items:center;gap:10px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.22em;color:var(--ink-dim);
+  transition:color .3s;
+}
+.back:hover{color:var(--ink)}
+.back i{
+  display:block;width:16px;height:1px;background:var(--cyan);position:relative;
+  transition:width .35s;
+}
+.back i::before{
+  content:"";position:absolute;left:0;top:-3px;width:7px;height:7px;
+  border-left:1px solid var(--cyan);border-bottom:1px solid var(--cyan);
+  transform:rotate(45deg);
+}
+.back:hover i{width:24px}
+.topbar .serial{
+  font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:var(--gold);
+}
+
+/* ===== 主体 ===== */
+.chronicle{
+  position:relative;z-index:5;
+  max-width:1080px;margin:0 auto;
+  padding:120px clamp(18px,4vw,48px) 140px;
+}
+
+/* ---- 页头 ---- */
+.head .eyebrow{
+  display:flex;align-items:center;gap:12px;margin-bottom:16px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.35em;color:var(--gold);
+}
+.head .eyebrow::before{
+  content:"";width:5px;height:5px;border-radius:50%;background:var(--cyan);
+  box-shadow:0 0 10px var(--cyan);
+}
+.head h1{
+  font-family:var(--serif);font-weight:600;
+  font-size:clamp(36px,6vw,72px);line-height:.95;letter-spacing:.06em;
+  text-shadow:0 0 70px rgba(201,35,35,.25);
+}
+.head h1 small{
+  display:block;margin-top:12px;
+  font-family:var(--mono);font-weight:300;
+  font-size:clamp(10px,1vw,12px);letter-spacing:.5em;color:var(--ink-dim);
+  text-transform:uppercase;
+}
+.head .head-note{
+  margin-top:26px;font-size:14px;line-height:1.9;color:var(--ink-dim);
+  max-width:560px;
+  font-family: var(--serif);
+  font-style: italic;
+}
+
+/* ---- 年份导航条 ---- */
+.year-nav{
+  display:flex;gap:8px;flex-wrap:wrap;
+  margin-top:40px;padding-top:22px;border-top:1px solid var(--line);
+}
+.year-nav a{
+  font-family:var(--mono);font-size:10px;letter-spacing:.15em;
+  color:var(--ink-dim);padding:7px 12px;border:1px solid var(--line);
+  border-radius:2px;transition:all .3s;
+}
+.year-nav a:hover,
+.year-nav a.is-current{
+  border-color:var(--cyan);color:var(--ink);background:rgba(201,35,35,.1);
+}
+
+/* =========================================
+   时间轴主体
+   ========================================= */
+.timeline{
+  position:relative;
+  margin-top:60px;
+  --line-pos: clamp(12px, 3vw, 32px);
+  --node-gap: clamp(24px, 5vw, 48px);
+}
+
+.timeline::before{
+  content:"";position:absolute;
+  left:var(--line-pos);top:8px;bottom:8px;width:1px;
+  background:linear-gradient(180deg,
+    transparent 0%,
+    rgba(201,35,35,.15) 8%,
+    rgba(201,35,35,.35) 50%,
+    rgba(201,35,35,.15) 92%,
+    transparent 100%);
+}
+
+.tl-node{
+  position:relative;
+  padding-left: calc(var(--line-pos) + var(--node-gap));
+  padding-bottom:clamp(48px,7vh,80px);
+  opacity:0;transform:translateY(24px);
+  transition:opacity .9s cubic-bezier(.16,1,.3,1),transform .9s cubic-bezier(.16,1,.3,1);
+}
+.tl-node.in{opacity:1;transform:none}
+.tl-node:last-child{padding-bottom:0}
+
+.tl-node::before{
+  content:"";position:absolute;
+  left:var(--line-pos);
+  transform:translateX(-50%);
+  top:10px;width:11px;height:11px;border-radius:50%;
+  background:var(--bg);border:1px solid var(--cyan);
+  box-shadow:0 0 12px rgba(201,35,35,.5);
+  transition:background .4s, box-shadow .4s;
+  z-index:2;
+}
+.tl-node.in::before{
+  background:var(--cyan);
+  box-shadow:0 0 18px rgba(201,35,35,.8);
+}
+.tl-node[data-importance="critical"].in::before{
+  background:#ff4d4d;
+  box-shadow:0 0 24px #ff4d4d;
+}
+
+.node-inner{
+  display:grid;
+  grid-template-columns: clamp(80px,14vw,140px) minmax(0,1fr);
+  gap:clamp(16px,3vw,36px);
+  align-items:start;
+}
+
+.node-date{
+  font-family:var(--mono);
+  font-size:clamp(16px,2.5vw,24px);
+  font-weight:500;
+  letter-spacing:.06em;
+  color:var(--ink);
+  line-height:1.3;
+  padding-top:2px;
+}
+.node-date small{
+  display:block;margin-top:6px;
+  font-size:9px;letter-spacing:.2em;color:var(--gold);
+  font-weight:300;
+}
+
+.node-card{
+  padding:clamp(18px,3vw,26px) clamp(18px,3.4vw,30px);
+  background:var(--glass);
+  border:1px solid var(--line);
+  border-radius:2px;
+  backdrop-filter:blur(16px) saturate(130%);
+  box-shadow:0 12px 40px rgba(0,0,0,.25);
+  transition:border-color .4s, box-shadow .4s;
+}
+.tl-node:hover .node-card{
+  border-color:rgba(201,35,35,.35);
+  box-shadow:0 18px 50px rgba(0,0,0,.4);
+}
+.tl-node[data-importance="critical"] .node-card{
+  border-color: rgba(201,35,35,.3);
+}
+
+/* 图片样式 */
+.node-figure{
+  position:relative;margin:0 0 18px;overflow:hidden;border-radius:2px;
+  border:1px solid var(--line);background:#0a0303;
+  aspect-ratio:16/9;
+}
+.node-figure img{
+  width:100%;height:100%;object-fit:cover;
+  filter:saturate(.85) contrast(1.05);
+  transition:transform .8s cubic-bezier(.16,1,.3,1);
+}
+.tl-node:hover .node-figure img{transform:scale(1.02)}
+.node-figure figcaption{
+  position:absolute;left:0;right:0;bottom:0;padding:10px 14px;
+  font-family:var(--mono);font-size:9px;letter-spacing:.18em;
+  color:rgba(255,226,242,.7);
+  background:linear-gradient(180deg,transparent,rgba(4,8,14,.9));
+}
+
+.node-card h2{
+  font-family:var(--serif);font-size:clamp(18px,2.4vw,22px);
+  font-weight:500;letter-spacing:.05em;
+  margin-bottom:12px;
+  line-height:1.4;
+}
+.node-summary{
+  font-size:13.5px;line-height:1.9;color:var(--ink);
+  margin-bottom:12px;
+}
+.node-content{
+  font-size:13px;line-height:1.95;color:var(--ink-dim);
+  white-space:pre-wrap;
+  padding-top:12px;
+  border-top:1px dashed rgba(255,255,255,.1);
+}
+
+/* ---- 页脚 ---- */
+.foot{
+  margin-top:70px;padding-top:22px;border-top:1px solid var(--line);
+  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--ink-dim);
+}
+.foot-quote{
+  font-family:var(--serif);
+  font-size:clamp(18px, 3vw, 24px);
+  color: var(--ink);
+  letter-spacing: .1em;
+  text-align: center;
+  margin-top: 80px;
+  padding: 40px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+/* ===== 响应式 ===== */
+@media (max-width:640px){
+  .chronicle{padding-top:104px}
+  .node-inner{grid-template-columns:1fr;gap:10px}
+  .node-date{font-size:16px}
+  .node-card{padding:16px 18px}
+  .node-card h2{font-size:18px}
+  .year-nav{gap:6px}
+  .year-nav a{font-size:9px;padding:6px 9px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition:none!important;animation:none!important}
+  .tl-node{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="back" href="index.html"><i></i>返回黑雨</a>
+  <span class="serial">ARCHIVE / CHRONICLE</span>
+</header>
+
+<!-- 悬浮歌单播放器 -->
+<div class="music-widget" id="music-widget">
+  <div class="music-bar">
+    <button class="music-toggle" id="music-toggle" aria-label="播放或暂停">
+      <svg class="icon-play" viewBox="0 0 24 24" width="18" height="18"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+      <svg class="icon-pause" viewBox="0 0 24 24" width="18" height="18"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" fill="currentColor"/></svg>
+    </button>
+    <div class="music-info">
+      <span class="music-title" id="music-title">黑雨 · OST</span>
+      <span class="music-artist" id="music-artist">LOADING...</span>
+    </div>
+    <button class="music-rain" id="music-rain" aria-label="开关雨声" title="开关环境雨声">
+      <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 2.5c-3.3 0-6 2.7-6 6 0 2.1 1.1 4 2.8 5l-1.3 2.8c-.2.4 0 .9.4 1.1.4.2.9 0 1.1-.4l1.5-3.2c.5.1 1 .2 1.5.2s1-.1 1.5-.2l1.5 3.2c.2.4.7.6 1.1.4.4-.2.6-.7.4-1.1l-1.3-2.8c1.7-1 2.8-2.9 2.8-5 0-3.3-2.7-6-6-6zm0 9c-1.7 0-3-1.3-3-3s1.3-3 3-3 3 1.3 3 3-1.3 3-3 3z" fill="currentColor"/></svg>
+    </button>
+    <button class="music-next" id="music-next" aria-label="下一首">
+      <svg viewBox="0 0 24 24" width="16" height="16"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" fill="currentColor"/></svg>
+    </button>
+  </div>
+  <ul class="music-list" id="music-list"></ul>
+</div>
+
+<main class="chronicle">
+
+  <header class="head">
+    <div class="eyebrow">BLACK RAIN · CHRONICLE</div>
+    <h1>
+      时间线
+      <small>CHRONICLE OF THE SURVIVED WORLD</small>
+    </h1>
+    <p class="head-note">
+      “雨滴落下的时候，所有的光芒都被夺走了”
+    </p>
+  </header>
+
+  <nav class="year-nav" id="year-nav" aria-label="年份快速导航"></nav>
+
+  <section class="timeline" id="timeline" aria-label="黑雨编年史"></section>
+
+  <div class="foot-quote">“在暴雨中央，你是谁”</div>
+  
+  <footer class="foot">
+    <span>黑雨 · CHRONICLE</span>
+    <a href="index.html">← 返回主页</a>
+  </footer>
+
+</main>
+
+<script>
+/* =========================================================
+   数据区
+   ========================================================= */
+const TIMELINE_NODES = [
+  {
+    id: "n1", date: "天启 元年", importance: "critical",
+    title: "“由光铸造的高塔刺破苍穹，由光淌成的雨滴浇灌大地”",
+    summary: "历史记载的第一场”黑雨“，一切天灾的源头",
+    content: "“黑雨”本身不可触碰,没有温度,仅仅是散发着柔和的光芒,类似于科幻作品里描述的一维质丝，当它们落下的时候,强烈的曝光会使其他物体失去颜色,这也是\"黑雨\"这一名称的由来",
+    image: "", imageCaption: ""
+  },
+  {
+    id: "n2", date: "1月1日", importance: "critical",
+    title: "第一次特大暴雨",
+    summary: "有人认为这是神降下了神罚\n有人认为这是神给予的恩赐\n这充满了神话色彩的一天日后被史学家称为\"天启日\"",
+    content: "",
+    image: "", imageCaption: ""
+  },
+  {
+    id: "n3", date: "1月-6月", importance: "normal",
+    title: "恐慌时期",
+    summary: "世界范围内大量发生与“黑雨”相关的异常事件，各国政府应急处理系统瘫痪，政府失能。公共交通与网络全球性瘫痪，一时之间世界仅剩恐慌",
+    content: "",
+    image: "assets/images/70b9b3ac770427bf.webp", imageCaption: "恐慌的人群"
+  },
+  {
+    id: "n4", date: "元年7月-003年末", importance: "normal",
+    title: "三年迁徙时期",
+    summary: "在世界范围内的\"黑雨\"事件逐渐平息后，剩余的人类开始向次生灾害频率更低的地方迁徙，最终聚集到了旧时代最大的城市 \"伊甸\" 的废墟之中，并逐渐开始构建新的秩序",
+    content: "",
+    image: "assets/images/b2f587d6627a0987.webp", imageCaption: "迁徙的难民"
+  },
+  {
+    id: "n5", date: "004年-072年", importance: "important",
+    title: "黑雨临时政府时期",
+    summary: "残余的人类聚集起来，在伊甸的废墟上建立了人类最后一座城市\"都市\"，由各国政府残余的部分重组而成的临时联合政府，成为了破碎大地上唯一的灯塔",
+    content: "由于异常天灾的频率降低，人类得到了喘息，在数十年间重新建立起一座庞大的复合城市",
+    image: "assets/images/9fa116453a8389db.webp", imageCaption: ""
+  },
+  {
+    id: "n6", date: "010年", importance: "critical",
+    title: "\"巴别塔协约\"",
+    summary: "由Δ为首的残余人类势力领袖在伊甸原太空电梯基座上的大礼堂进行了\"巴别塔协约\"的签订,这一协约的签订代表人类正式团结起来,从此各区域政府整合为联合政府,统一管理全城物资",
+    content: "就在协约签订的同时,\"巴别塔\"工程同步启动,人们开始在太空电梯的基座上建立起一座真正的政治中心,同时恢复运行的太空电梯也将成为人类夺回近地空间的阶梯",
+    image: "assets/images/e98f354135380c11.webp", imageCaption: ""
+  },
+  {
+    id: "n7", date: "073年 1月1日", importance: "critical",
+    title: "第二次特大暴雨",
+    summary: "", content: "", image: "", imageCaption: ""
+  },
+  {
+    id: "n8", date: "073年初", importance: "critical",
+    title: "“大崩塌”",
+    summary: "自仅次于天启日次生灾害的一起天灾事件，直接导致了\"都市\"三分之一的面积以环带形式沉降100~3000m不等，受灾人数达到3亿,都市核心与外环联系中断，成为了后续一系列重大事件发生的导火索",
+    content: "",
+    image: "assets/images/cc5dfa91a0cfa385.webp", imageCaption: ""
+  },
+  {
+    id: "n9", date: "大崩塌后", importance: "normal",
+    title: "内环事件",
+    summary: "断裂带更里边发生的事件",
+    content: "", image: "", imageCaption: ""
+  },
+  {
+    id: "n10", date: "073年-076年", importance: "critical",
+    title: "“大清洗”与\"黑雨核心政府\"",
+    summary: "大崩塌发生后,内环政府人心惶惶,Δ开始统筹全局,稳定内环局势.",
+    content: "Δ意识到松散的政府终究无法应对更大程度的天灾,于是浩浩荡荡的大清洗开始了,所有政治上的异己被Δ用血腥手段处理，内环所有城市的市政府被强行绑定到巴别塔上,巴别塔从此成为整个内环唯一的政治中枢,这也标志着联合政府向独裁政府转变,此后,巴别塔政权被称为\"黑雨核心政府\"",
+    image: "assets/images/1ace11b32f74b109.webp", imageCaption: ""
+  },
+  {
+    id: "n11", date: "077年", importance: "important",
+    title: "“巴别塔封锁\"",
+    summary: "内环半数军队入驻巴别塔区域,巴别塔正式成为军政一体的巨型复合体,太空电梯被军队封锁,从此无人知晓它为何忙碌",
+    content: "",
+    image: "assets/images/6c3d4d6c81de9410.webp", imageCaption: ""
+  },
+  {
+    id: "n12", date: "078年-090年", importance: "important",
+    title: "\"伞\"技术全面发展",
+    summary: "名为\"伞\"的技术被巴别塔向外推广,其本质为大型区域现实稳定锚,虽然不能断绝黑雨现象的影响,却可以显著抑制黑雨现象后的天灾规模",
+    content: "10年间,内环所有城市均已配备复数的\"伞\"节点,黑雨现象对内环区域的影响来到历史低点",
+    image: "", imageCaption: ""
+  },
+  {
+    id: "n13", date: "大崩塌后", importance: "normal",
+    title: "外环事件",
+    summary: "断裂带以外发生的事件",
+    content: "", image: "", imageCaption: ""
+  },
+  {
+    id: "n14", date: "073年-076年", importance: "important",
+    title: "\"资源重组\"时期",
+    summary: "在失去了与中央政府的联系后,各个地区的局势开始变得动荡,企业与部分暴力机关正在试图争夺地区的控制权",
+    content: "在这场资本主义的狂欢中，人的生命与财富安全已经岌岌可危,而资本家们公然称这段\"他们的黄金岁月\"中的掠夺是\"资源重组行为\"",
+    image: "assets/images/b3105b423a6ac2ce.webp", imageCaption: ""
+  },
+  {
+    id: "n15", date: "077年-088年", importance: "critical",
+    title: "\"十年公司战争\"",
+    summary: "在大部分地区政府倒台后,真正的战争开始了,巨型企业与军阀政府沆瀣一气，组成了巨型军工政复合体，并开始为了资源互相攻伐,冲突烈度急剧上升,更多的战争机器被投入使用",
+    content: "在无止境的战争与掠夺中,势力与势力之间的交界地带出现了由复数贫民窟连成一片的\"后巷\"地带,和因遗留的战争机器而无人居住的\"城际废墟\"地带",
+    image: "assets/images/838e4d301b4f14d6.webp", imageCaption: ""
+  },
+  {
+    id: "n16", date: "089年-090年", importance: "normal",
+    title: "恢复时期",
+    summary: "本质上只是在各公司停战后与与内环联通前的一段冷战期,不过确实让饱受战争侵扰的人民得以喘了一口气",
+    content: "说是恢复,但其实社会的贫富差距已经被拉得极大,重组时期的资源再分配几乎摧毁了联合政府时期的所有制度，各地的巨型企业都组成了各自的傀儡政府",
+    image: "assets/images/7a805f792cc440b0.webp", imageCaption: ""
+  },
+  {
+    id: "n17", date: "090年末", importance: "critical",
+    title: "内外再联通",
+    summary: "断裂带上空的黑雨现象频率降低,现实基本稳定,这使得通讯与高空交通得以进行",
+    content: "", image: "", imageCaption: ""
+  },
+  {
+    id: "n18", date: "091年", importance: "critical",
+    title: "“领土整合运动”",
+    summary: "Δ以军事威胁的方式强迫各地割据政府放弃了独立宣称,但仍保有政体大部分体系,黑雨核心政府仅仅是将“伞”节点向外铺设，与在全都市范围设立军事哨站",
+    content: "值得一提的是,不少位于贫穷地区的\"伞\"节点因为市政无法负担能源费用而被迫关停,黑雨核心政府对此却没有反应.(“伞“节点在接入伞网络后再断开时,影响区域内黑雨现象将会报复式井喷)",
+    image: "assets/images/85dee036f534abdc.webp", imageCaption: ""
+  },
+  {
+    id: "n19", date: "092年-098年", importance: "important",
+    title: "局部冲突时期",
+    summary: "黑雨核心政府的介入并不能真正平息巨企们的野心,暗杀战争,治安战争,局部冲突,领土争端,战争从未远去,只是在向局部化,小型化发展",
+    content: "于此同时,各种各样的组织(比如衔尾蛇)携带着不同的目标开始活跃于公众视野,社会在混乱中稳定下来，但新的混乱也在不断产生",
+    image: "assets/images/fba17244a30c7725.webp", imageCaption: ""
+  },
+  {
+    id: "n20", date: "098年-如今(101年)", importance: "critical",
+    title: "你们的舞台",
+    summary: "如今都市的政治格局基本平稳下来,虽然黑雨现象仍旧经常发生,但人们的生活节奏已经可以基本稳定下来",
+    content: "在这偌大的都市中,你想成为谁？\n是一个普普通通的小市民？\n是一个坚守内心的警官？\n是一个随波逐流的佣兵?\n还是探索断裂带的冒险家？\n又或者是遵循内心,抛弃了过往的现实扭曲者?",
+    image: "", imageCaption: ""
+  }
+];
+
+/* =========================================================
+   渲染逻辑 & 音效绑定
+   ========================================================= */
+(function () {
+  const timelineEl = document.getElementById('timeline');
+  const navEl = document.getElementById('year-nav');
+
+  // 1. 生成节点 HTML
+  timelineEl.innerHTML = TIMELINE_NODES.map(item => {
+    const formatText = (text) => text ? String(text).replace(/\n/g, '<br>') : '';
+
+    const figure = item.image
+      ? `<figure class="node-figure">
+           <img src="${item.image}" alt="${item.title}" loading="lazy"
+                onerror="this.parentElement.style.display='none'">
+           ${item.imageCaption ? `<figcaption>${item.imageCaption}</figcaption>` : ''}
+         </figure>`
+      : '';
+
+    const summaryHtml = item.summary ? `<p class="node-summary">${formatText(item.summary)}</p>` : '';
+    const contentHtml = item.content ? `<div class="node-content">${formatText(item.content)}</div>` : '';
+
+    return `
+      <article class="tl-node" id="${item.id}" data-importance="${item.importance || 'normal'}">
+        <div class="node-inner">
+          <div class="node-date">${item.date || ''}</div>
+          <div class="node-card">
+            ${figure}
+            <h2>${item.title || '未命名事件'}</h2>
+            ${summaryHtml}
+            ${contentHtml}
+          </div>
+        </div>
+      </article>
+    `;
+  }).join('');
+
+  // 2. 生成顶部导航
+  navEl.innerHTML = TIMELINE_NODES.map((item, index) => {
+    let shortLabel = item.date.split(/[年月日\s]/)[0];
+    if (!shortLabel || shortLabel.length > 6) shortLabel = item.date.substring(0, 5);
+    if (shortLabel === '大崩塌后') shortLabel = '大崩塌'; 
+    return `<a href="#${item.id}">${shortLabel}</a>`;
+  }).join('');
+
+  const nodes = document.querySelectorAll('.tl-node');
+  const navLinks = document.querySelectorAll('.year-nav a');
+
+  // 3. 滚动观察器 + 音效
+  const io = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      entry.target.classList.add('in');
+      
+      // ★ 节点进入视口音效
+      if (typeof window.playTick === 'function') window.playTick();
+
+      const id = entry.target.id;
+      navLinks.forEach(a => {
+        a.classList.toggle('is-current', a.getAttribute('href') === '#' + id);
+      });
+    }
+  }, {
+    rootMargin: '0px 0px -18% 0px',
+    threshold: 0.05
+  });
+
+  nodes.forEach(node => io.observe(node));
+
+  // 首屏元素直接显示
+  nodes.forEach(node => {
+    if (node.getBoundingClientRect().top < window.innerHeight * 0.9) {
+      node.classList.add('in');
+    }
+  });
+
+  // 4. 导航点击音效
+  navEl.addEventListener('click', (e) => {
+    if (e.target.closest('a') && typeof window.playClick === 'function') {
+      window.playClick();
+    }
+  });
+})();
+</script>
+
+<!-- 音效库与播放器 -->
+<script src="assets/sfx.js" defer></script>
+
+<audio id="bgm-player" loop preload="auto"></audio>
+<audio id="rain-player" src="assets/rain-loop.opus" loop preload="auto"></audio>
+
+<script src="assets/player.js" defer></script>
+
+</body>
+</html>

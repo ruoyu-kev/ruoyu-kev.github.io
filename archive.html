@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>角色档案馆 · 黑雨 / BLACK RAIN</title>
+<style>
+:root{
+  --bg:#0f0505;
+  --ink:#f6abab;
+  --ink-dim:#ffe2f2;
+  --gold:#69561d;
+  --cyan:#c92323;
+  --line:rgba(255,0,0,.14);
+  --glass:rgba(52,0,0,.566);
+  --serif:"Noto Serif SC","Songti SC","Source Han Serif SC",Georgia,serif;
+  --sans:"Inter","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --mono:"JetBrains Mono","SFMono-Regular",Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--ink);font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;min-height:100svh;
+}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+
+/* 全局颗粒 + 暗角 */
+body::after{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:100;opacity:.035;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:99;
+  background:radial-gradient(ellipse at 50% 40%,transparent 40%,rgba(0,0,0,.68) 100%);
+}
+
+/* ===== 顶栏 ===== */
+.topbar{
+  position:fixed;inset:0 0 auto 0;z-index:90;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px clamp(18px,4vw,52px);
+  background:rgba(15,5,5,.72);backdrop-filter:blur(16px) saturate(140%);
+  border-bottom:1px solid var(--line);
+}
+.back{
+  display:inline-flex;align-items:center;gap:10px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.22em;color:var(--ink-dim);
+  transition:color .3s;
+}
+.back:hover{color:var(--ink)}
+.back i{
+  display:block;width:16px;height:1px;background:var(--cyan);position:relative;
+  transition:width .35s;
+}
+.back i::before{
+  content:"";position:absolute;left:0;top:-3px;width:7px;height:7px;
+  border-left:1px solid var(--cyan);border-bottom:1px solid var(--cyan);
+  transform:rotate(45deg);
+}
+.back:hover i{width:24px}
+.topbar .serial{
+  font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:var(--gold);
+}
+
+/* ===== 主体 ===== */
+.archive{
+  position:relative;z-index:5;
+  max-width:1240px;margin:0 auto;
+  padding:104px clamp(18px,4vw,40px) 120px;
+}
+
+/* ---- 档案头部 ---- */
+.archive-head{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  gap:24px;flex-wrap:wrap;
+  padding-bottom:24px;border-bottom:1px solid var(--line);
+}
+.archive-head .head-left .eyebrow{
+  display:flex;align-items:center;gap:12px;margin-bottom:14px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.35em;color:var(--gold);
+}
+.archive-head .head-left .eyebrow::before{
+  content:"";width:5px;height:5px;border-radius:50%;background:var(--cyan);
+  box-shadow:0 0 10px var(--cyan);
+}
+.archive-head h1{
+  font-family:var(--serif);font-weight:600;
+  font-size:clamp(36px,5.2vw,64px);line-height:.95;letter-spacing:.06em;
+  text-shadow:0 0 70px rgba(201,35,35,.25);
+}
+.archive-head h1 small{
+  display:block;margin-top:10px;
+  font-family:var(--mono);font-weight:300;
+  font-size:clamp(10px,1vw,12px);letter-spacing:.5em;color:var(--ink-dim);
+  text-transform:uppercase;
+}
+.archive-head .head-right{
+  display:flex;flex-direction:column;align-items:flex-end;gap:6px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--ink-dim);
+}
+.archive-head .head-right strong{color:var(--ink);font-weight:500}
+
+/* ---- 筛选栏 ---- */
+.filters{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:22px 0 8px;
+}
+.filters .filter-label{
+  font-family:var(--mono);font-size:9px;letter-spacing:.3em;color:var(--gold);
+  margin-right:6px;
+}
+.chip{
+  appearance:none;background:transparent;border:1px solid var(--line);
+  padding:7px 16px;border-radius:2px;cursor:pointer;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;color:var(--ink-dim);
+  transition:all .35s cubic-bezier(.16,1,.3,1);
+}
+.chip:hover{border-color:rgba(201,35,35,.45);color:var(--ink)}
+.chip.is-active{
+  background:rgba(201,35,35,.16);border-color:var(--cyan);color:var(--ink);
+  box-shadow:0 0 14px rgba(201,35,35,.2);
+}
+
+/* ---- 卡片网格 ---- */
+.grid{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:clamp(14px,2vw,24px);
+  margin-top:28px;
+}
+.card{
+  position:relative;overflow:hidden;border-radius:2px;
+  background:var(--glass);border:1px solid var(--line);
+  backdrop-filter:blur(16px) saturate(130%);
+  display:flex;flex-direction:column;
+  /* 基础过渡（平缓回弹） */
+  transition:transform .45s cubic-bezier(.16,1,.3,1),border-color .4s,box-shadow .4s;
+  will-change: transform;
+}
+
+/* 3D 旋转光斑层 */
+.card.tilt::before {
+  content:"";position:absolute;inset:0;z-index:10;pointer-events:none;
+  opacity:0;transition:opacity .35s;
+  background:radial-gradient(
+    250px circle at var(--tx,50%) var(--ty,50%),
+    rgba(255,180,180,.12),
+    transparent 60%
+  );
+  mix-blend-mode:screen;
+  border-radius:inherit;
+}
+.card.tilt:hover::before {opacity:1}
+
+.card:hover{
+  border-color:rgba(201,35,35,.5);
+  box-shadow:0 18px 50px rgba(0,0,0,.5),0 0 0 1px rgba(201,35,35,.15);
+}
+
+/* 卡片图片区 */
+.card-visual{
+  position:relative;aspect-ratio:4/3;overflow:hidden;
+  background:linear-gradient(180deg,#140607,#0f0505);
+}
+.card-visual img{
+  width:100%;height:100%;object-fit:cover;object-position:top center;
+  filter:saturate(.85) contrast(1.02);
+  transition:transform 1s cubic-bezier(.16,1,.3,1),filter .6s;
+}
+.card:hover .card-visual img{transform:scale(1.05)}
+.card-visual::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,transparent 40%,rgba(15,5,5,.88));
+  pointer-events:none;
+}
+
+/* 标签 */
+.card-tag{
+  position:absolute;top:12px;left:12px;z-index:2;
+  font-family:var(--mono);font-size:9px;letter-spacing:.22em;
+  padding:4px 9px;border:1px solid rgba(201,35,35,.4);
+  background:rgba(15,5,5,.55);backdrop-filter:blur(6px);
+  color:var(--cyan);
+}
+
+/* 编号水印 */
+.card-no{
+  position:absolute;right:12px;bottom:8px;z-index:2;
+  font-family:var(--mono);font-size:11px;letter-spacing:.15em;
+  color:rgba(255,226,242,.35);
+}
+
+/* 卡片文字区 */
+.card-body{
+  padding:16px 18px 18px;display:flex;flex-direction:column;gap:10px;flex:1;
+}
+.card-body h3{
+  font-family:var(--serif);font-size:20px;font-weight:500;letter-spacing:.06em;
+  line-height:1.2;
+}
+.card-body .card-en{
+  font-family:var(--mono);font-size:9px;letter-spacing:.25em;
+  color:var(--gold);text-transform:uppercase;
+}
+.card-body .card-brief{
+  font-size:12.5px;line-height:1.8;color:var(--ink-dim);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.card-meta{
+  display:flex;gap:0;border-top:1px solid var(--line);margin-top:auto;
+  padding-top:12px;
+}
+.card-meta div{
+  flex:1;min-width:0;padding-right:10px;border-right:1px solid var(--line);
+}
+.card-meta div:last-child{border-right:0;padding-right:0;padding-left:10px}
+.card-meta dt{
+  font-family:var(--mono);font-size:8px;letter-spacing:.2em;color:var(--gold);
+  margin-bottom:3px;
+}
+.card-meta dd{font-size:11.5px;letter-spacing:.06em;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* 完整度进度条 */
+.completeness{
+  display:flex;align-items:center;gap:8px;margin-top:6px;
+}
+.completeness .bar{
+  flex:1;height:2px;background:rgba(201,35,35,.15);overflow:hidden;
+}
+.completeness .bar i{
+  display:block;height:100%;background:var(--cyan);
+  box-shadow:0 0 8px rgba(201,35,35,.6);
+  transition:width 1s cubic-bezier(.16,1,.3,1);
+}
+.completeness span{
+  font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--ink-dim);
+  white-space:nowrap;
+}
+
+/* ---- 空状态（筛选无结果） ---- */
+.empty{
+  grid-column:1/-1;text-align:center;padding:60px 20px;
+  font-family:var(--mono);font-size:12px;letter-spacing:.2em;color:var(--ink-dim);
+  border:1px dashed var(--line);border-radius:2px;
+}
+
+/* ---- 页脚 ---- */
+.archive-foot{
+  margin-top:60px;padding-top:22px;border-top:1px solid var(--line);
+  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--ink-dim);
+}
+
+/* ===== 响应式 ===== */
+@media (max-width:860px){
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .archive{padding-top:92px}
+  .archive-head .head-right{display:none}
+}
+@media (max-width:560px){
+  .grid{grid-template-columns:1fr}
+  .card-visual{aspect-ratio:16/10}
+  .filters{gap:8px}
+  .chip{padding:6px 12px;font-size:10px}
+}
+
+/* 减弱动态效果 */
+@media (hover:none),(prefers-reduced-motion:reduce){
+  .card.tilt{transform:none!important}
+  .card.tilt::before{display:none}
+  .card{transition:border-color .4s,box-shadow .4s}
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+
+<!-- 顶栏 -->
+<header class="topbar">
+  <a class="back" href="index.html"><i></i>返回黑雨</a>
+  <span class="serial">ARCHIVE / CHARACTER INDEX</span>
+</header>
+
+<!-- 主体 -->
+<main class="archive">
+
+  <!-- 档案头部 -->
+  <header class="archive-head">
+    <div class="head-left">
+      <div class="eyebrow">BLACK RAIN · PERSONNEL ARCHIVE</div>
+      <h1>
+        角色档案馆
+        <small>CHARACTER ARCHIVE / VOL. 01</small>
+      </h1>
+    </div>
+    <div class="head-right">
+      <span>收录人数 <strong id="count-num">03</strong></span>
+      <span>最后更新 · 潮历 300 年</span>
+    </div>
+  </header>
+
+  <!-- 筛选栏 -->
+  <div class="filters" role="group" aria-label="角色筛选">
+    <span class="filter-label">FILTER / 筛选</span>
+    <button class="chip is-active" data-filter="all">全部 / ALL</button>
+    <button class="chip" data-filter="listener">聆听者</button>
+    <button class="chip" data-filter="broadcaster">播报者</button>
+    <button class="chip" data-filter="anchor">负伞者</button>
+    <button class="chip" data-filter="incomplete">档案未完成</button>
+  </div>
+
+  <!-- 角色卡片网格 -->
+  <div class="grid" id="archive-grid">
+
+    <!-- 01 · 空着：新增 tilt 类 -->
+    <a class="card tilt" href="character-1.html" data-class="listener" data-complete="low">
+      <div class="card-visual">
+        <span class="card-tag">PROTAGONIST</span>
+        <img src="assets/char-1.webp" alt="空着 · 角色立绘"
+             onerror="this.style.display='none';this.parentElement.style.background='radial-gradient(60% 50% at 60% 35%,rgba(201,35,35,.12),transparent 70%),linear-gradient(180deg,#140607,#0f0505)';">
+        <span class="card-no">BR-001</span>
+      </div>
+      <div class="card-body">
+        <h3>空着</h3>
+        <div class="card-en">VACANT / SIGNAL LOST</div>
+        <p class="card-brief">雨落下来的时候，只有他还在听。他不记录雨量，只是听雨层里有没有不属于这座城邦的鲸歌。</p>
+        <div class="card-meta">
+          <div><dt>CLASS</dt><dd>聆听者</dd></div>
+          <div><dt>ORIGIN</dt><dd>黑雨城邦</dd></div>
+        </div>
+        <div class="completeness">
+          <div class="bar"><i style="width:31%"></i></div>
+          <span>31%</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- 02 · 天气预报员：新增 tilt 类 -->
+    <a class="card tilt" href="character-2.html" data-class="broadcaster" data-complete="high">
+      <div class="card-visual">
+        <span class="card-tag">SUPPORT</span>
+        <img src="assets/char-2.webp" alt="天气预报员 · 角色立绘"
+             onerror="this.style.display='none';this.parentElement.style.background='radial-gradient(60% 50% at 60% 35%,rgba(201,35,35,.12),transparent 70%),linear-gradient(180deg,#140607,#0f0505)';">
+        <span class="card-no">BR-002</span>
+      </div>
+      <div class="card-body">
+        <h3>天气预报员</h3>
+        <div class="card-en">WEATHER FORECASTER / SIGNAL CLEAR</div>
+        <p class="card-brief">云层压下来的时候，只有他还在播报。他把云图翻到下一页，念出明天会不会有雨。</p>
+        <div class="card-meta">
+          <div><dt>CLASS</dt><dd>播报者</dd></div>
+          <div><dt>ORIGIN</dt><dd>黑雨城邦 · 广播塔</dd></div>
+        </div>
+        <div class="completeness">
+          <div class="bar"><i style="width:68%"></i></div>
+          <span>68%</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- 03 · 负伞：新增 tilt 类 -->
+    <a class="card tilt" href="character-3.html" data-class="anchor" data-complete="mid">
+      <div class="card-visual">
+        <span class="card-tag">DEFENDER</span>
+        <img src="assets/char-3.webp" alt="负伞 · 角色立绘"
+             onerror="this.style.display='none';this.parentElement.style.background='radial-gradient(60% 50% at 60% 35%,rgba(201,35,35,.12),transparent 70%),linear-gradient(180deg,#140607,#0f0505)';">
+        <span class="card-no">BR-003</span>
+      </div>
+      <div class="card-body">
+        <h3>负伞</h3>
+        <div class="card-en">UMBRELLA BEARER / ANCHOR HELD</div>
+        <p class="card-brief">堤在伞在。他扛着现实稳定锚走在堤上，每隔一段就留下一把伞，每一把都是一个人扛过去的。</p>
+        <div class="card-meta">
+          <div><dt>CLASS</dt><dd>负伞者</dd></div>
+          <div><dt>ORIGIN</dt><dd>黑雨城邦 · 防汛队</dd></div>
+        </div>
+        <div class="completeness">
+          <div class="bar"><i style="width:54%"></i></div>
+          <span>54%</span>
+        </div>
+      </div>
+    </a>
+
+  </div>
+
+  <!-- 页脚 -->
+  <footer class="archive-foot">
+    <span>黑雨 · CHARACTER ARCHIVE</span>
+    <span>档案持续书写中 · 等待新的名字</span>
+  </footer>
+
+</main>
+
+<script>
+/* =========================================================
+   1. 动态生成红色三角形阵列背景
+   ========================================================= */
+(function createHalftoneBg() {
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("viewBox", "0 0 1000 1000");
+  svg.setAttribute("preserveAspectRatio", "xMidYMid slice");
+  svg.style.position = "fixed";
+  svg.style.inset = "0";
+  svg.style.width = "100%";
+  svg.style.height = "100%";
+  svg.style.zIndex = "-1";
+  svg.style.pointerEvents = "none";
+  svg.style.opacity = "0.15";
+  svg.style.mixBlendMode = "screen";
+
+  let frag = document.createDocumentFragment();
+  let y = -20, row = 0;
+  while (y < 1000) {
+    let size = Math.max(3, 36 - row * 0.7);
+    let gapX = Math.max(4, 28 - row * 0.5);
+    let stepX = size + gapX;
+    for (let x = 0; x < 1000; x += stepX) {
+      let poly = document.createElementNS(svgNS, "polygon");
+      poly.setAttribute("points", `${x},${y} ${x + size},${y} ${x + size / 2},${y - size}`);
+      poly.setAttribute("fill", "#c92323");
+      frag.appendChild(poly);
+    }
+    y += size + gapX * 0.8;
+    row++;
+  }
+  svg.appendChild(frag);
+  document.body.prepend(svg);
+})();
+
+/* =========================================================
+   2. 卡片 3D 旋转动效
+   ========================================================= */
+(function initTilt() {
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isTouch = window.matchMedia('(hover: none)').matches;
+  if (prefersReduced || isTouch) return;
+
+  const TILT = 8; // 旋转角度，档案馆卡片较大，用 8 度效果最好
+
+  document.querySelectorAll('.tilt').forEach(el => {
+    el.addEventListener('mousemove', e => {
+      const r = el.getBoundingClientRect();
+      const x = e.clientX - r.left;
+      const y = e.clientY - r.top;
+      const px = x / r.width;
+      const py = y / r.height;
+
+      // 合并上浮 -4px 和 3D 旋转
+      el.style.transform = `perspective(800px) translateY(-4px) rotateX(${(0.5 - py) * TILT * 2}deg) rotateY(${(px - 0.5) * TILT * 2}deg)`;
+      
+      // 光斑跟随
+      el.style.setProperty('--tx', x + 'px');
+      el.style.setProperty('--ty', y + 'px');
+    }, { passive: true });
+
+    el.addEventListener('mouseleave', () => {
+      // 移除行内样式，让 CSS 接管平滑回位
+      el.style.transform = '';
+    });
+  });
+})();
+
+/* =========================================================
+   3. 筛选逻辑
+   ========================================================= */
+const chips = document.querySelectorAll('.chip');
+const cards = Array.from(document.querySelectorAll('.card'));
+const countNum = document.getElementById('count-num');
+const grid = document.getElementById('archive-grid');
+
+// 预先移除可能存在的空状态
+const oldEmpty = grid.querySelector('.empty');
+if (oldEmpty) oldEmpty.remove();
+
+chips.forEach(chip => {
+  chip.addEventListener('click', () => {
+    chips.forEach(c => c.classList.remove('is-active'));
+    chip.classList.add('is-active');
+
+    const filter = chip.dataset.filter;
+    let visible = 0;
+
+    cards.forEach(card => {
+      let show = false;
+      if (filter === 'all') show = true;
+      else if (filter === 'incomplete') show = card.dataset.complete === 'low';
+      else show = card.dataset.class === filter;
+
+      card.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+
+    // 空状态处理
+    let empty = grid.querySelector('.empty');
+    if (visible === 0) {
+      if (!empty) {
+        empty = document.createElement('div');
+        empty.className = 'empty';
+        empty.textContent = '// 没有匹配的档案 · NO RECORDS FOUND';
+        grid.appendChild(empty);
+      }
+      empty.style.display = '';
+    } else if (empty) {
+      empty.style.display = 'none';
+    }
+
+    countNum.textContent = String(visible).padStart(2, '0');
+  });
+});
+
+// 初始化计数
+countNum.textContent = String(cards.length).padStart(2, '0');
+</script>
+
+<button id="bgm-toggle" class="bgm-toggle" aria-label="播放或暂停背景音乐">
+  <svg class="icon-play"  viewBox="0 0 24 24" width="18" height="18"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+  <svg class="icon-pause" viewBox="0 0 24 24" width="18" height="18"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" fill="currentColor"/></svg>
+</button>
+
+<audio id="bgm-player"  src="assets/bgm.opus"       loop preload="auto"></audio>
+<audio id="rain-player" src="assets/rain-loop.opus" loop preload="auto"></audio>
+
+<script src="assets/player.js" defer></script>
+
+</body>
+</html>
