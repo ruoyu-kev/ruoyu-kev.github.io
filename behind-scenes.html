@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>幕后手记 · 黑雨 / BEHIND THE SCENES</title>
+<style>
+:root{
+  --bg:#0f0505;
+  --ink:#f6abab;
+  --ink-dim:#ffe2f2;
+  --gold:#69561d;
+  --cyan:#c92323;
+  --line:rgba(255,0,0,.14);
+  --glass:rgba(52,0,0,.566);
+  --serif:"Noto Serif SC","Songti SC","Source Han Serif SC",Georgia,serif;
+  --sans:"Inter","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --mono:"JetBrains Mono","SFMono-Regular",Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--ink);font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;min-height:100svh;
+}
+a{color:inherit;text-decoration:none}
+
+body::after{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:100;opacity:.035;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:99;
+  background:radial-gradient(ellipse at 50% 40%,transparent 40%,rgba(0,0,0,.68) 100%);
+}
+
+.topbar{
+  position:fixed;inset:0 0 auto 0;z-index:90;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px clamp(18px,4vw,52px);
+  background:rgba(15,5,5,.72);backdrop-filter:blur(16px) saturate(140%);
+  border-bottom:1px solid var(--line);
+}
+.back{
+  display:inline-flex;align-items:center;gap:10px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.22em;color:var(--ink-dim);
+  transition:color .3s;
+}
+.back:hover{color:var(--ink)}
+.back i{
+  display:block;width:16px;height:1px;background:var(--cyan);position:relative;
+  transition:width .35s;
+}
+.back i::before{
+  content:"";position:absolute;left:0;top:-3px;width:7px;height:7px;
+  border-left:1px solid var(--cyan);border-bottom:1px solid var(--cyan);
+  transform:rotate(45deg);
+}
+.back:hover i{width:24px}
+.topbar .serial{
+  font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:var(--gold);
+}
+
+.archive{
+  position:relative;z-index:5;
+  max-width:860px;margin:0 auto;
+  padding:120px clamp(18px,4vw,40px) 140px;
+}
+
+.head .eyebrow{
+  display:flex;align-items:center;gap:12px;margin-bottom:16px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.35em;color:var(--gold);
+}
+.head .eyebrow::before{
+  content:"";width:5px;height:5px;border-radius:50%;background:var(--cyan);
+  box-shadow:0 0 10px var(--cyan);
+}
+.head h1{
+  font-family:var(--serif);font-weight:600;
+  font-size:clamp(36px,6vw,72px);line-height:.95;letter-spacing:.06em;
+  text-shadow:0 0 70px rgba(201,35,35,.25);
+}
+.head h1 small{
+  display:block;margin-top:12px;
+  font-family:var(--mono);font-weight:300;
+  font-size:clamp(10px,1vw,12px);letter-spacing:.5em;color:var(--ink-dim);
+  text-transform:uppercase;
+}
+.head .head-note{
+  margin-top:26px;font-size:14px;line-height:1.9;color:var(--ink-dim);
+  max-width:560px;
+}
+
+/* ===== 故事列表 ===== */
+.stories{
+  margin-top:50px;display:flex;flex-direction:column;gap:0;
+  border-top:1px solid var(--line);
+}
+.story{
+  position:relative;
+  padding:28px 0 28px 0;
+  border-bottom:1px solid var(--line);
+}
+.story-head{
+  display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:10px;
+}
+.story-head time{
+  font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--gold);
+}
+.story-head h3{
+  font-family:var(--serif);font-size:clamp(19px,2.4vw,24px);font-weight:500;
+  letter-spacing:.04em;
+}
+.story p{
+  font-size:14px;line-height:2;color:var(--ink-dim);white-space:pre-wrap;
+}
+.story-empty{
+  padding:50px 0;text-align:center;
+  font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--ink-dim);
+  border-bottom:1px solid var(--line);
+}
+
+/* ===== 作者触发按钮（始终可见） ===== */
+.admin-bar{
+  position:fixed;right:clamp(16px,3vw,32px);bottom:clamp(16px,3vh,32px);z-index:200;
+}
+.admin-trigger{
+  appearance:none;border:1px solid var(--line);background:rgba(15,5,5,.7);
+  backdrop-filter:blur(10px);border-radius:50%;
+  width:40px;height:40px;cursor:pointer;
+  display:grid;place-items:center;
+  color:var(--ink-dim);font-family:var(--mono);font-size:16px;
+  transition:all .3s;
+  opacity:.3; /* 默认极低透明度，鼠标移上去变亮，保持低调 */
+}
+.admin-trigger:hover{
+  opacity:1;border-color:rgba(201,35,35,.5);color:var(--ink);
+  box-shadow: 0 0 15px rgba(201,35,35,.3);
+}
+
+/* ===== 编辑面板（默认隐藏） ===== */
+#admin-panel{display:none}
+#admin-panel.is-unlocked{display:block}
+
+.admin-panel{
+  position:fixed;left:50%;bottom:0;transform:translate(-50%,100%);
+  z-index:210;width:min(560px,calc(100vw - 32px));
+  background:rgba(15,5,5,.96);border:1px solid var(--line);border-bottom:none;
+  border-radius:2px 2px 0 0;backdrop-filter:blur(20px);
+  padding:26px 26px 24px;
+  transition:transform .5s cubic-bezier(.16,1,.3,1);
+  box-shadow:0 -20px 60px rgba(0,0,0,.6);
+}
+#admin-panel.is-unlocked .admin-panel{transform:translate(-50%,0)}
+.admin-panel h4{
+  font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:var(--gold);
+  margin-bottom:16px;text-transform:uppercase;
+}
+.admin-panel input,
+.admin-panel textarea{
+  width:100%;background:rgba(0,0,0,.35);border:1px solid var(--line);
+  color:var(--ink);font-family:var(--sans);font-size:14px;
+  padding:12px 14px;border-radius:2px;outline:none;
+  transition:border-color .3s;
+}
+.admin-panel input:focus,
+.admin-panel textarea:focus{border-color:rgba(201,35,35,.55)}
+.admin-panel textarea{min-height:130px;resize:vertical;line-height:1.8;margin-top:10px}
+.admin-panel input::placeholder,
+.admin-panel textarea::placeholder{color:rgba(255,226,242,.3)}
+.admin-actions{
+  display:flex;justify-content:flex-end;gap:10px;margin-top:14px;
+}
+.admin-actions button{
+  appearance:none;cursor:pointer;
+  font-family:var(--mono);font-size:10px;letter-spacing:.22em;
+  padding:9px 18px;border-radius:2px;border:1px solid var(--line);
+  background:transparent;color:var(--ink-dim);transition:all .3s;
+}
+.admin-actions button:hover{border-color:rgba(201,35,35,.5);color:var(--ink)}
+.admin-actions .primary{
+  background:rgba(201,35,35,.16);border-color:var(--cyan);color:var(--ink);
+}
+.admin-actions .primary:hover{background:rgba(201,35,35,.3)}
+
+.foot{
+  margin-top:70px;padding-top:22px;border-top:1px solid var(--line);
+  font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--ink-dim);
+  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+}
+
+@media (max-width:600px){
+  .archive{padding-top:104px}
+  .story p{font-size:13px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition:none!important;animation:none!important}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="back" href="index.html"><i></i>返回黑雨</a>
+  <span class="serial">ARCHIVE / BEHIND THE SCENES</span>
+</header>
+
+<main class="archive">
+
+  <header class="head">
+    <div class="eyebrow">CREATOR'S NOTES · 创作手记</div>
+    <h1>
+      幕后
+      <small>BEHIND THE SCENES / HOW THE RAIN FELL</small>
+    </h1>
+    <p class="head-note">
+      这里存放一些没有写进正式档案的东西：最初的念头、被删掉的段落、角色之间的对话，
+      以及关于这个世界的、暂时还没有答案的问题。
+    </p>
+  </header>
+
+  <!-- 故事列表 -->
+  <div class="stories" id="story-list">
+    <div class="story-empty" id="story-empty">// 还没有手记 · NO NOTES YET</div>
+  </div>
+
+  <footer class="foot">
+    <span>黑雨 · BEHIND THE SCENES</span>
+    <span>手记持续补充中</span>
+  </footer>
+
+</main>
+
+<!-- ===== 作者触发按钮（移出隐藏区域，始终可见） ===== -->
+<div class="admin-bar">
+  <button class="admin-trigger" id="admin-trigger" title="作者入口">✎</button>
+</div>
+
+<!-- ===== 编辑面板（默认隐藏） ===== -->
+<div id="admin-panel">
+  <div class="admin-panel">
+    <h4>NEW NOTE / 新增手记</h4>
+    <input type="text" id="note-title" placeholder="标题（如：关于黑雨的第一次设想）">
+    <textarea id="note-body" placeholder="写下你想记录的内容……"></textarea>
+    <div class="admin-actions">
+      <button type="button" id="note-cancel">收起</button>
+      <button type="button" class="primary" id="note-save">发布手记</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   作者配置：在这里修改你的密码
+   ========================================================= */
+const ADMIN_PASSWORD = 'blackrain2026'; // ← 改成你自己的密码
+const STORAGE_KEY = 'blackrain:behind-the-scenes';
+
+/* =========================================================
+   数据存取
+   ========================================================= */
+function loadNotes() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveNotes(notes) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+}
+
+/* =========================================================
+   渲染故事列表（所有访客可见）
+   ========================================================= */
+function renderNotes() {
+  const list = document.getElementById('story-list');
+  const notes = loadNotes();
+
+  list.innerHTML = '';
+
+  if (!notes.length) {
+    const empty = document.createElement('div');
+    empty.className = 'story-empty';
+    empty.textContent = '// 还没有手记 · NO NOTES YET';
+    list.appendChild(empty);
+    return;
+  }
+
+  // 按时间倒序
+  notes.slice().reverse().forEach(note => {
+    const article = document.createElement('article');
+    article.className = 'story';
+
+    const head = document.createElement('div');
+    head.className = 'story-head';
+
+    const time = document.createElement('time');
+    time.textContent = note.date || '';
+
+    const h3 = document.createElement('h3');
+    h3.textContent = note.title || '未命名手记';
+
+    head.appendChild(time);
+    head.appendChild(h3);
+
+    const p = document.createElement('p');
+    p.textContent = note.body || '';
+
+    article.appendChild(head);
+    article.appendChild(p);
+    list.appendChild(article);
+  });
+}
+
+/* =========================================================
+   作者入口：点击右下角的小笔图标，弹出密码框
+   ========================================================= */
+const adminPanel = document.getElementById('admin-panel');
+const adminTrigger = document.getElementById('admin-trigger');
+const noteTitle = document.getElementById('note-title');
+const noteBody = document.getElementById('note-body');
+
+let unlocked = false;
+
+adminTrigger.addEventListener('click', () => {
+  if (unlocked) {
+    // 已解锁时，点击图标切换编辑面板显示
+    adminPanel.classList.toggle('is-unlocked');
+    return;
+  }
+
+  const input = prompt('请输入作者密码：');
+  if (input === ADMIN_PASSWORD) {
+    unlocked = true;
+    adminPanel.classList.add('is-unlocked');
+    adminTrigger.style.opacity = '1';
+    adminTrigger.style.borderColor = 'rgba(201,35,35,.5)';
+    adminTrigger.title = '作者模式 · 点击切换编辑面板';
+  } else if (input !== null) {
+    alert('密码不正确。');
+  }
+});
+
+/* 保存手记 */
+document.getElementById('note-save').addEventListener('click', () => {
+  const title = noteTitle.value.trim();
+  const body = noteBody.value.trim();
+
+  if (!title && !body) {
+    alert('至少写点内容吧。');
+    return;
+  }
+
+  const notes = loadNotes();
+  const now = new Date();
+  const dateStr = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
+
+  notes.push({
+    title: title || '未命名手记',
+    body: body,
+    date: dateStr
+  });
+
+  saveNotes(notes);
+  renderNotes();
+
+  // 清空并收起
+  noteTitle.value = '';
+  noteBody.value = '';
+  adminPanel.classList.remove('is-unlocked');
+});
+
+/* 取消 / 收起 */
+document.getElementById('note-cancel').addEventListener('click', () => {
+  adminPanel.classList.remove('is-unlocked');
+});
+
+/* 初始化 */
+renderNotes();
+</script>
+
+<button id="bgm-toggle" class="bgm-toggle" aria-label="播放或暂停背景音乐">
+  <svg class="icon-play" viewBox="0 0 24 24" width="18" height="18"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+  <svg class="icon-pause" viewBox="0 0 24 24" width="18" height="18"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" fill="currentColor"/></svg>
+</button>
+
+<audio id="bgm-player" src="assets/bgm.opus" loop preload="auto"></audio>
+<audio id="rain-player" src="assets/rain-loop.opus" loop preload="auto"></audio>
+<script src="assets/player.js" defer></script>
+
+</body>
+</html>

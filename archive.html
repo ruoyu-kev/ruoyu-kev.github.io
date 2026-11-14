@@ -26,7 +26,6 @@ body{
 a{color:inherit;text-decoration:none}
 img{display:block;max-width:100%}
 
-/* 全局颗粒 + 暗角 */
 body::after{
   content:"";position:fixed;inset:0;pointer-events:none;z-index:100;opacity:.035;
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
@@ -134,12 +133,10 @@ body::before{
   background:var(--glass);border:1px solid var(--line);
   backdrop-filter:blur(16px) saturate(130%);
   display:flex;flex-direction:column;
-  /* 基础过渡（平缓回弹） */
   transition:transform .45s cubic-bezier(.16,1,.3,1),border-color .4s,box-shadow .4s;
   will-change: transform;
 }
 
-/* 3D 旋转光斑层 */
 .card.tilt::before {
   content:"";position:absolute;inset:0;z-index:10;pointer-events:none;
   opacity:0;transition:opacity .35s;
@@ -158,7 +155,6 @@ body::before{
   box-shadow:0 18px 50px rgba(0,0,0,.5),0 0 0 1px rgba(201,35,35,.15);
 }
 
-/* 卡片图片区 */
 .card-visual{
   position:relative;aspect-ratio:4/3;overflow:hidden;
   background:linear-gradient(180deg,#140607,#0f0505);
@@ -175,7 +171,6 @@ body::before{
   pointer-events:none;
 }
 
-/* 标签 */
 .card-tag{
   position:absolute;top:12px;left:12px;z-index:2;
   font-family:var(--mono);font-size:9px;letter-spacing:.22em;
@@ -184,14 +179,12 @@ body::before{
   color:var(--cyan);
 }
 
-/* 编号水印 */
 .card-no{
   position:absolute;right:12px;bottom:8px;z-index:2;
   font-family:var(--mono);font-size:11px;letter-spacing:.15em;
   color:rgba(255,226,242,.35);
 }
 
-/* 卡片文字区 */
 .card-body{
   padding:16px 18px 18px;display:flex;flex-direction:column;gap:10px;flex:1;
 }
@@ -221,7 +214,6 @@ body::before{
 }
 .card-meta dd{font-size:11.5px;letter-spacing:.06em;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-/* 完整度进度条 */
 .completeness{
   display:flex;align-items:center;gap:8px;margin-top:6px;
 }
@@ -238,21 +230,18 @@ body::before{
   white-space:nowrap;
 }
 
-/* ---- 空状态（筛选无结果） ---- */
 .empty{
   grid-column:1/-1;text-align:center;padding:60px 20px;
   font-family:var(--mono);font-size:12px;letter-spacing:.2em;color:var(--ink-dim);
   border:1px dashed var(--line);border-radius:2px;
 }
 
-/* ---- 页脚 ---- */
 .archive-foot{
   margin-top:60px;padding-top:22px;border-top:1px solid var(--line);
   display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
   font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--ink-dim);
 }
 
-/* ===== 响应式 ===== */
 @media (max-width:860px){
   .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .archive{padding-top:92px}
@@ -265,12 +254,74 @@ body::before{
   .chip{padding:6px 12px;font-size:10px}
 }
 
-/* 减弱动态效果 */
 @media (hover:none),(prefers-reduced-motion:reduce){
   .card.tilt{transform:none!important}
   .card.tilt::before{display:none}
   .card{transition:border-color .4s,box-shadow .4s}
   *,*::before,*::after{animation:none!important;transition:none!important}
+}
+
+/* =========================================================
+   悬浮歌单播放器
+   ========================================================= */
+.music-widget {
+  position: fixed;
+  top: 84px;
+  right: clamp(16px, 4vw, 24px);
+  z-index: 95;
+  width: 240px;
+  background: rgba(15, 5, 5, 0.85);
+  backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+.music-bar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; height: 44px; box-sizing: border-box;
+}
+.music-toggle, .music-next, .music-rain {
+  background: none; border: none; color: var(--ink-dim);
+  cursor: pointer; padding: 0; display: grid; place-items: center;
+  transition: color 0.3s, opacity 0.3s;
+}
+.music-toggle:hover, .music-next:hover, .music-rain:hover { color: var(--ink); }
+.music-toggle .icon-pause { display: none; }
+.music-toggle.playing .icon-play { display: none; }
+.music-toggle.playing .icon-pause { display: block; }
+.music-rain { opacity: 0.4; }
+.music-rain.is-active { color: var(--cyan); opacity: 1; filter: drop-shadow(0 0 5px rgba(201,35,35,0.6)); }
+.music-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+.music-title {
+  font-family: var(--serif); font-size: 12px; color: var(--ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px;
+}
+.music-artist {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; color: var(--gold);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.music-list {
+  list-style: none; max-height: 0; opacity: 0; overflow-y: auto;
+  transition: max-height 0.4s ease, opacity 0.3s ease;
+  border-top: 1px solid var(--line); background: rgba(10, 3, 3, 0.6);
+}
+.music-widget:hover .music-list, .music-widget.is-open .music-list { max-height: 260px; opacity: 1; }
+.music-list li {
+  padding: 10px 14px; font-family: var(--sans); font-size: 11px; color: var(--ink-dim);
+  cursor: pointer; border-bottom: 1px solid rgba(255, 0, 0, 0.05);
+  transition: all 0.25s; display: flex; justify-content: space-between;
+}
+.music-list li:hover { background: rgba(201, 35, 35, 0.15); color: var(--ink); padding-left: 18px; }
+.music-list li.is-active { color: var(--cyan); background: rgba(201, 35, 35, 0.1); font-weight: 500; }
+.music-list::-webkit-scrollbar { width: 4px; }
+.music-list::-webkit-scrollbar-track { background: transparent; }
+.music-list::-webkit-scrollbar-thumb { background: rgba(201, 35, 35, 0.4); border-radius: 2px; }
+
+@media (max-width: 600px) {
+  .music-widget { width: 200px; top: 72px; }
+  .music-widget:hover .music-list, .music-widget.is-open .music-list { max-height: 200px; }
 }
 </style>
 </head>
@@ -285,7 +336,6 @@ body::before{
 <!-- 主体 -->
 <main class="archive">
 
-  <!-- 档案头部 -->
   <header class="archive-head">
     <div class="head-left">
       <div class="eyebrow">BLACK RAIN · PERSONNEL ARCHIVE</div>
@@ -300,7 +350,6 @@ body::before{
     </div>
   </header>
 
-  <!-- 筛选栏 -->
   <div class="filters" role="group" aria-label="角色筛选">
     <span class="filter-label">FILTER / 筛选</span>
     <button class="chip is-active" data-filter="all">全部 / ALL</button>
@@ -310,24 +359,23 @@ body::before{
     <button class="chip" data-filter="incomplete">档案未完成</button>
   </div>
 
-  <!-- 角色卡片网格 -->
   <div class="grid" id="archive-grid">
 
-    <!-- 01 · 空着：新增 tilt 类 -->
+    <!-- 01 · 空无 (BR-099) -->
     <a class="card tilt" href="character-1.html" data-class="listener" data-complete="low">
       <div class="card-visual">
         <span class="card-tag">PROTAGONIST</span>
-        <img src="assets/char-1.webp" alt="空着 · 角色立绘"
+        <img src="assets/char-1.webp" alt="空无 · 角色立绘"
              onerror="this.style.display='none';this.parentElement.style.background='radial-gradient(60% 50% at 60% 35%,rgba(201,35,35,.12),transparent 70%),linear-gradient(180deg,#140607,#0f0505)';">
-        <span class="card-no">BR-001</span>
+        <span class="card-no">BR-099</span>
       </div>
       <div class="card-body">
-        <h3>空着</h3>
+        <h3>空无</h3>
         <div class="card-en">VACANT / SIGNAL LOST</div>
-        <p class="card-brief">雨落下来的时候，只有他还在听。他不记录雨量，只是听雨层里有没有不属于这座城邦的鲸歌。</p>
+        <p class="card-brief">雨落下来的时候，只有它还在听。作为被初代现实稳定锚捕捉的异常，黑雨对它没有敌意——每一次它抬头，黑雨就会被切断三十秒。</p>
         <div class="card-meta">
           <div><dt>CLASS</dt><dd>聆听者</dd></div>
-          <div><dt>ORIGIN</dt><dd>黑雨城邦</dd></div>
+          <div><dt>ORIGIN</dt><dd>稳定异常物</dd></div>
         </div>
         <div class="completeness">
           <div class="bar"><i style="width:31%"></i></div>
@@ -336,44 +384,44 @@ body::before{
       </div>
     </a>
 
-    <!-- 02 · 天气预报员：新增 tilt 类 -->
+    <!-- 02 · 天气预报员 (BR-006) -->
     <a class="card tilt" href="character-2.html" data-class="broadcaster" data-complete="high">
       <div class="card-visual">
         <span class="card-tag">SUPPORT</span>
         <img src="assets/char-2.webp" alt="天气预报员 · 角色立绘"
              onerror="this.style.display='none';this.parentElement.style.background='radial-gradient(60% 50% at 60% 35%,rgba(201,35,35,.12),transparent 70%),linear-gradient(180deg,#140607,#0f0505)';">
-        <span class="card-no">BR-002</span>
+        <span class="card-no">BR-006</span>
       </div>
       <div class="card-body">
         <h3>天气预报员</h3>
         <div class="card-en">WEATHER FORECASTER / SIGNAL CLEAR</div>
-        <p class="card-brief">云层压下来的时候，只有他还在播报。他把云图翻到下一页，念出明天会不会有雨。</p>
+        <p class="card-brief">云层压下来的时候，继续播报。天天采集数据分析，把云图翻到下一页，念出地区、时间、概率——却依旧会被当成死神的喉舌。</p>
         <div class="card-meta">
           <div><dt>CLASS</dt><dd>播报者</dd></div>
-          <div><dt>ORIGIN</dt><dd>黑雨城邦 · 广播塔</dd></div>
+          <div><dt>ORIGIN</dt><dd>内环</dd></div>
         </div>
         <div class="completeness">
-          <div class="bar"><i style="width:68%"></i></div>
-          <span>68%</span>
+          <div class="bar"><i style="width:82%"></i></div>
+          <span>82%</span>
         </div>
       </div>
     </a>
 
-    <!-- 03 · 负伞：新增 tilt 类 -->
+    <!-- 03 · 负伞 (BR-067) -->
     <a class="card tilt" href="character-3.html" data-class="anchor" data-complete="mid">
       <div class="card-visual">
         <span class="card-tag">DEFENDER</span>
         <img src="assets/char-3.webp" alt="负伞 · 角色立绘"
              onerror="this.style.display='none';this.parentElement.style.background='radial-gradient(60% 50% at 60% 35%,rgba(201,35,35,.12),transparent 70%),linear-gradient(180deg,#140607,#0f0505)';">
-        <span class="card-no">BR-003</span>
+        <span class="card-no">BR-067</span>
       </div>
       <div class="card-body">
         <h3>负伞</h3>
         <div class="card-en">UMBRELLA BEARER / ANCHOR HELD</div>
-        <p class="card-brief">堤在伞在。他扛着现实稳定锚走在堤上，每隔一段就留下一把伞，每一把都是一个人扛过去的。</p>
+        <p class="card-brief">堤在伞在。扛着行伞走在堤上，每当黑雨从远处传来，就把伞撑开、钉进土里，开始面对异常——直到人类能在新的土地上扎根。</p>
         <div class="card-meta">
           <div><dt>CLASS</dt><dd>负伞者</dd></div>
-          <div><dt>ORIGIN</dt><dd>黑雨城邦 · 防汛队</dd></div>
+          <div><dt>ORIGIN</dt><dd>外环 · 北境重工</dd></div>
         </div>
         <div class="completeness">
           <div class="bar"><i style="width:54%"></i></div>
@@ -384,7 +432,6 @@ body::before{
 
   </div>
 
-  <!-- 页脚 -->
   <footer class="archive-foot">
     <span>黑雨 · CHARACTER ARCHIVE</span>
     <span>档案持续书写中 · 等待新的名字</span>
@@ -437,7 +484,7 @@ body::before{
   const isTouch = window.matchMedia('(hover: none)').matches;
   if (prefersReduced || isTouch) return;
 
-  const TILT = 8; // 旋转角度，档案馆卡片较大，用 8 度效果最好
+  const TILT = 8;
 
   document.querySelectorAll('.tilt').forEach(el => {
     el.addEventListener('mousemove', e => {
@@ -447,16 +494,12 @@ body::before{
       const px = x / r.width;
       const py = y / r.height;
 
-      // 合并上浮 -4px 和 3D 旋转
       el.style.transform = `perspective(800px) translateY(-4px) rotateX(${(0.5 - py) * TILT * 2}deg) rotateY(${(px - 0.5) * TILT * 2}deg)`;
-      
-      // 光斑跟随
       el.style.setProperty('--tx', x + 'px');
       el.style.setProperty('--ty', y + 'px');
     }, { passive: true });
 
     el.addEventListener('mouseleave', () => {
-      // 移除行内样式，让 CSS 接管平滑回位
       el.style.transform = '';
     });
   });
@@ -470,7 +513,6 @@ const cards = Array.from(document.querySelectorAll('.card'));
 const countNum = document.getElementById('count-num');
 const grid = document.getElementById('archive-grid');
 
-// 预先移除可能存在的空状态
 const oldEmpty = grid.querySelector('.empty');
 if (oldEmpty) oldEmpty.remove();
 
@@ -492,7 +534,6 @@ chips.forEach(chip => {
       if (show) visible++;
     });
 
-    // 空状态处理
     let empty = grid.querySelector('.empty');
     if (visible === 0) {
       if (!empty) {
@@ -510,17 +551,35 @@ chips.forEach(chip => {
   });
 });
 
-// 初始化计数
 countNum.textContent = String(cards.length).padStart(2, '0');
 </script>
 
-<button id="bgm-toggle" class="bgm-toggle" aria-label="播放或暂停背景音乐">
-  <svg class="icon-play"  viewBox="0 0 24 24" width="18" height="18"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
-  <svg class="icon-pause" viewBox="0 0 24 24" width="18" height="18"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" fill="currentColor"/></svg>
-</button>
+<!-- 悬浮歌单播放器 -->
+<div class="music-widget" id="music-widget">
+  <div class="music-bar">
+    <button class="music-toggle" id="music-toggle" aria-label="播放或暂停">
+      <svg class="icon-play" viewBox="0 0 24 24" width="18" height="18"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+      <svg class="icon-pause" viewBox="0 0 24 24" width="18" height="18"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" fill="currentColor"/></svg>
+    </button>
+    <div class="music-info">
+      <span class="music-title" id="music-title">黑雨 · OST</span>
+      <span class="music-artist" id="music-artist">LOADING...</span>
+    </div>
+    <button class="music-rain" id="music-rain" aria-label="开关雨声" title="开关环境雨声">
+      <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 2.5c-3.3 0-6 2.7-6 6 0 2.1 1.1 4 2.8 5l-1.3 2.8c-.2.4 0 .9.4 1.1.4.2.9 0 1.1-.4l1.5-3.2c.5.1 1 .2 1.5.2s1-.1 1.5-.2l1.5 3.2c.2.4.7.6 1.1.4.4-.2.6-.7.4-1.1l-1.3-2.8c1.7-1 2.8-2.9 2.8-5 0-3.3-2.7-6-6-6zm0 9c-1.7 0-3-1.3-3-3s1.3-3 3-3 3 1.3 3 3-1.3 3-3 3z" fill="currentColor"/></svg>
+    </button>
+    <button class="music-next" id="music-next" aria-label="下一首">
+      <svg viewBox="0 0 24 24" width="16" height="16"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" fill="currentColor"/></svg>
+    </button>
+  </div>
+  <ul class="music-list" id="music-list"></ul>
+</div>
 
-<audio id="bgm-player"  src="assets/bgm.opus"       loop preload="auto"></audio>
-<audio id="rain-player" src="assets/rain-loop.opus" loop preload="auto"></audio>
+<!-- 音效与播放器 -->
+<script src="assets/sfx.js" defer></script>
+
+<audio id="bgm-player" loop preload="auto"></audio>
+<audio id="rain-player" src="assets/music/rain-loop.opus" loop preload="auto"></audio>
 
 <script src="assets/player.js" defer></script>
 
