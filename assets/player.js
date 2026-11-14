@@ -9,15 +9,15 @@
 
   // 歌单配置区（替换为你自己的曲目）
   const PLAYLIST = [
-    { title: 'hey',artist:'waitforinput', src: 'assets/music/meditativetiger-zero-g-lounge-422701-soConvert.opus'},
-    { title: 'THAT', artist: 'TRY', src: 'assets/music/night_city_radio-nebula-328169.opus' },
-    { title: 'WHAT', artist: 'TRY', src: 'assets/music/lux-aeterna-stillness-528421-soConvert.opus' },
-    { title: 'HOW', artist: 'TRY', src: 'assets/music/night_city_radio-nebula-328169-soConvert.opus' }
+    { title: 'stillness', artist: 'lux-aeterna', src: 'assets/music/lux-aeterna-stillness-528421.mp3'},
+    { title: 'saibo-ting-electronica', artist: 'meditativetiger', src: 'assets/music/meditativetiger-saibo-ting-electronica-downtempo-beat-367348.mp3' },
+    { title: 'zero-g-lounge',artist:'meditativetiger', src: 'assets/music/meditativetiger-zero-g-lounge-422701.mp3' },
+    { title: 'nebula', artist: 'night_city_radio', src: 'assets/music/night_city_radio-nebula-328169.mp3' }
   ];
 
   const KEY = 'blackrain:playlist-state';
 
-  // DOM 元素
+  // DOM 元素s
   const widget     = document.getElementById('music-widget');
   const bgm        = document.getElementById('bgm-player');
   const rain       = document.getElementById('rain-player');
@@ -30,7 +30,7 @@
 
   if (!bgm || !toggleBtn) return;
   bgm.volume = 0.2;   // 背景音乐音量，范围 0.0 ~ 1.0 (0.3~0.5 比较合适)
-  rain.volume = 0.7; // 环境雨声音量，范围 0.0 ~ 1.0 (0.1~0.2 比较合适，不要盖过BGM)
+  rain.volume = 0.5; // 环境雨声音量，范围 0.0 ~ 1.0 (0.1~0.2 比较合适，不要盖过BGM)
 
 
   let currentIndex = 0;
