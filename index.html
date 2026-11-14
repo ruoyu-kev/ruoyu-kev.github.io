@@ -2,19 +2,19 @@
 <html lang="zh-CN"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>黑雨 · BALCK RAIN</title>
+<title>黑雨 · BLACK RAIN</title>
 <meta name="description" content="一个关于失落地表的世界">
 <style>
 /* ============ 设计变量：想换配色只改这里 ============ */
 :root{
-  --bg:#0f0505;
-  --bg-2:#790012;
+  --bg:#0f0808;
+  --bg-2:#1c1213;
   --ink:#f6abab5d;
   --ink-dim:#ffe2f2;
   --gold:#69561d;
   --cyan:#c92323;
   --line:rgba(255, 0, 0, 0.14);
-  --glass:rgba(52, 0, 0, 0.566);
+  --glass:rgba(46, 16, 16, 0.566);
   --serif:"Noto Serif SC","Songti SC","Source Han Serif SC",Georgia,serif;
   --sans:"Inter","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
   --mono:"JetBrains Mono","SFMono-Regular",Consolas,monospace;
@@ -236,6 +236,7 @@ footer{
 .timeline .tl-item:nth-child(3){transition-delay:.14s}
 .timeline .tl-item:nth-child(4){transition-delay:.21s}
 .timeline .tl-item:nth-child(5){transition-delay:.28s}
+.timeline .tl-item:nth-child(6){transition-delay:.35s}
 
 /* 文案逐行浮现 */
 .about .copy p,.about .rule-list li{opacity:0;transform:translateY(16px);
@@ -600,8 +601,8 @@ body:hover .cursor-glow{opacity:1}
   <div class="hero-bg has-image" id="heroBg" style="--hero-img: url(&quot;assets/hero.webp&quot;); transform: translate3d(0px, 167px, 0px);"></div>
   <div class="hero-inner">
     <div class="kicker">A World Beneath the Rain</div>
-    <h1>黑雨<span>BALCK RAIN</span></h1>
-    <p>雨落无声，带走目及之处所有光明<br>当前版本：“异轨战略”<br>(请手动打开右上角音乐)</p>
+    <h1>黑雨<span>BLACK RAIN</span></h1>
+    <p>雨落无声，带走目及之处所有光明<br>当前版本：“异轨战略”<br>(请手动打开右上角音乐和雨声)</p>
   </div>
   <div class="scroll-hint"><span>SCROLL DOWN</span><i></i></div>
 </header>
@@ -612,13 +613,13 @@ body:hover .cursor-glow{opacity:1}
   </div>
   <div class="about">
     <div class="copy reveal">
-      <p>自天启日之后，人类只能聚居在一片城邦。世界各处都可能下<strong>「黑雨」</strong>。而人类存活所依赖的政体也叫<strong>「黑雨」</strong>。</p>
+      <p>自天启日之后，人类只能聚居在世界一隅。世界各处都可能下<strong>「黑雨」</strong>。</p>
       
       
       <ul class="rule-list">
-        <li><b>I</b><span><strong>「黑雨」</strong>会引发现实扭曲，可以带来灾难</span></li>
-        <li><b>II</b><span><strong>「黑雨」</strong>限制着人类</span></li>
-        <li><b>III</b><span>无论哪一个黑雨都有上述特性</span></li>
+        <li><b>I</b><span><strong>「黑雨」</strong>会引发现实扭曲，带来灾难</span></li>
+        <li><b>II</b><span><strong>「黑雨」</strong>的“雨丝“会导致强烈曝光，区域内的其他物体仿佛失去色彩。</span></li>
+        <li><b>III</b><span><strong>「黑雨」</strong>本身无害，拥有“赋予”的能力。表现为无法接触、没有温度的一维质丝从天空落下。</span></li>
       </ul>
     </div>
     <figure class="figure glass reveal">
@@ -635,17 +636,17 @@ body:hover .cursor-glow{opacity:1}
   <div class="cards">
     <article class="card glass reveal tilt">
       <span class="tag">PROTAGONIST</span>
-      <a href="character-1.html"><img src="assets/char-1.webp" alt="主角" onerror="this.style.display='none'"></a>
-      <div class="meta"><h3>空着</h3><p>当雨落下</p></div>
+      <a href="character-1.html"><img src="assets/char-1.webp" alt="空无" onerror="this.style.display='none'"></a>
+      <div class="meta"><h3>空无</h3><p>当雨落下</p></div>
     </article>
     <article class="card glass reveal tilt" data-delay="1">
       <span class="tag">MENTOR</span>
-      <a href="character-2.html"><img src="assets/char-2.webp" alt="老鲸歌者" onerror="this.style.display='none'"></a>
+      <a href="character-2.html"><img src="assets/char-2.webp" alt="天气预报员" onerror="this.style.display='none'"></a>
       <div class="meta"><h3>天气预报员</h3><p>汇报<strong>黑雨的动向</strong></p></div>
     </article>
     <article class="card glass reveal tilt" data-delay="2">
       <span class="tag">ANTAGONIST</span>
-      <a href="character-3.html"><img src="assets/char-3.webp" alt="议会代表" onerror="this.style.display='none'"></a>
+      <a href="character-3.html"><img src="assets/char-3.webp" alt="负伞者" onerror="this.style.display='none'"></a>
       <div class="meta"><h3>负伞者</h3><p>负伞</p></div>
     </article>
   </div>
@@ -658,20 +659,20 @@ body:hover .cursor-glow{opacity:1}
   </div>
     <div class="places">
     <figure class="place wide glass reveal tilt">
-      <a href="map.html"><img src="assets/hero.webp" alt="核心区" onerror="this.style.display='none'"></a>
-      <figcaption>核心区（巴别塔及周边）<small>CORE</small></figcaption>
+      <a href="map.html"><img src="assets/hero.webp" alt="内环" onerror="this.style.display='none'"></a>
+      <figcaption>内环<small>CORE</small></figcaption>
     </figure>
     <figure class="place glass reveal tilt" data-delay="1">
-      <a href="map.html"><img src="assets/place-2.webp" alt="周围城区" onerror="this.style.display='none'"></a>
-      <figcaption>内环<small>CITY</small></figcaption>
+      <a href="map.html"><img src="assets/place-2.webp" alt="断裂带" onerror="this.style.display='none'"></a>
+      <figcaption><strong>断裂带</strong><small>THE CUT</small></figcaption>
     </figure>
     <figure class="place glass reveal tilt" data-delay="2">
-      <a href="map.html"><img src="assets/place-3.webp" alt="裂隙" onerror="this.style.display='none'"></a>
+      <a href="map.html"><img src="assets/place-3.webp" alt="郊区" onerror="this.style.display='none'"></a>
       <figcaption>郊区<small>THE UNKNOWN</small></figcaption>
     </figure>
     <figure class="place wide glass reveal tilt" data-delay="3">
-      <a href="map.html"><img src="assets/place-4.webp" alt="未知区域" onerror="this.style.display='none'"></a>
-      <figcaption>断裂带与外环<small>THE CUT</small></figcaption>
+      <a href="map.html"><img src="assets/place-4.webp" alt="外环" onerror="this.style.display='none'"></a>
+      <figcaption>外环<small>THE COUTER</small></figcaption>
     </figure>
   </div>
   <a class="section-cta magnetic" href="map.html">查看详情</a>
@@ -679,14 +680,39 @@ body:hover .cursor-glow{opacity:1}
 
 <section id="timeline">
   <div class="section-head reveal">
-    <span class="idx">04</span><h2>时间线（这里还没写完）</h2><span class="en">TIMELINE</span>
+    <span class="idx">04</span><h2>时间线</h2><span class="en">TIMELINE</span>
   </div>
   <div class="timeline">
-    <div class="tl-item reveal"><time>元 年</time><h4>天启日</h4><p>失去。</p></div>
-    <div class="tl-item reveal"><time>010 年</time><h4>巴别塔协议</h4><p>人类团结。</p></div>
-    <div class="tl-item reveal"><time>073 年</time><h4>第二次特大暴雨</h4><p>大崩塌。</p></div>
-    <div class="tl-item reveal"><time>090 年</time><h4>伞节点基本部署完成</h4><p>生活还要继续。</p></div>
-    <div class="tl-item reveal"><time>098 年至今</time><h4>你们的舞台</h4><p>由你们书写未来的历史。</p></div>
+    <div class="tl-item reveal">
+      <time>天启 元年</time>
+      <h4>第一场黑雨</h4>
+      <p>巨型光柱贯穿行星，发光的丝线如暴雨般落下，强烈的曝光夺走了其他物体的颜色，现实扭曲正式降临地表。</p>
+    </div>
+    <div class="tl-item reveal">
+      <time>元年-003年</time>
+      <h4>恐慌与迁徙</h4>
+      <p>各国政府应急系统瘫痪，公共交通与网络全球性中断。残存的人类向次生灾害频率更低的地方迁徙，最终聚集在旧时代的“伊甸”废墟。</p>
+    </div>
+    <div class="tl-item reveal">
+      <time>010年</time>
+      <h4>巴别塔协约</h4>
+      <p>由Δ为首的势力领袖签订协约，人类正式团结，区域政府整合为联合政府。巴别塔工程同步启动，试图恢复太空电梯。</p>
+    </div>
+    <div class="tl-item reveal">
+      <time>073年</time>
+      <h4>大崩塌</h4>
+      <p>第二次特大暴雨导致都市三分之一面积以环带形式沉降，受灾人数达三亿。都市核心与外环联系彻底中断。</p>
+    </div>
+    <div class="tl-item reveal">
+      <time>077年-090年</time>
+      <h4>公司战争与清洗</h4>
+      <p>内环发生大清洗建立“黑雨核心政府”，外环巨头企业陷入长达十年的资源掠夺战。战火与剥削让底层人民饱受苦难。</p>
+    </div>
+    <div class="tl-item reveal">
+      <time>098年至今</time>
+      <h4>你们的舞台</h4>
+      <p>都市格局基本平稳，内外环勉强连接。在这个充满现实扭曲与权力割裂的都市里，你想成为谁？</p>
+    </div>
   </div>
   <a class="section-cta magnetic" href="timeline.html">查看详情</a>
 </section>

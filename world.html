@@ -239,7 +239,9 @@ body::before{
   font-family:var(--serif);font-size:19px;font-weight:500;letter-spacing:.05em;
   margin-bottom:10px;
 }
-.concept-card p{font-size:13px;line-height:1.9;color:var(--ink-dim)}
+.concept-card p{font-size:13px;line-height:1.9;color:var(--ink-dim); margin-bottom: 8px;}
+.concept-card p:last-child { margin-bottom: 0; }
+.concept-card strong{color: var(--ink); font-weight: 500;}
 
 /* 区域档案条目 */
 .region-entry{
@@ -360,12 +362,13 @@ body::before{
   <aside class="world-index">
     <div class="index-kicker">CONTENTS / 档案目录</div>
     <ol>
-      <li><a href="#concept" data-idx="01">黑雨 · 现象与政体</a></li>
+      <li><a href="#concept" data-idx="01">黑雨 · 现象与灾害</a></li>
       <li><a href="#babel"   data-idx="02">巴别塔与核心区</a></li>
       <li><a href="#inner"   data-idx="03">内环下城区</a></li>
       <li><a href="#outer"   data-idx="04">外环 · 五大势力</a></li>
       <li><a href="#fault"   data-idx="05">断裂带 · “海”</a></li>
       <li><a href="#unknown" data-idx="06">未知郊区 · 年代现象</a></li>
+      <li><a href="#orgs"    data-idx="07">中小体量组织</a></li>
     </ol>
     <p class="index-note">
       本档案依据《黑雨》世界观整理。<br>
@@ -389,37 +392,66 @@ body::before{
       </p>
     </header>
 
-    <!-- 01 黑雨 -->
+    <!-- 01 黑雨概念 -->
     <section class="doc-section" id="concept">
       <div class="section-label">
-        <span class="idx">01</span><h2>黑雨</h2><span class="en">THE BLACK RAIN</span>
+        <span class="idx">01</span><h2>黑雨 · 现象与灾害</h2><span class="en">THE BLACK RAIN</span>
       </div>
 
       <div class="concept-grid">
         <div class="concept-card">
+          <div class="tag">APOCALYPSE</div>
+          <h3>天启日</h3>
+          <p>新年的凌晨，一道贯穿行星的巨型光柱冲天而起。半小时后光柱消散，发光的“丝线”如雨般落下。一小时内，毛毛雨变为覆盖全球的暴雨。</p>
+          <p>一小时后雨停，全球各地开始发生剧烈的天灾与现实扭曲。这一天被史学家称为“天启日”。</p>
+        </div>
+
+        <div class="concept-card">
           <div class="tag">PHENOMENON</div>
-          <h3>现象：现实扭曲</h3>
-          <p>黑雨不是普通的降水。雨水落下的地方，物理规则开始松动，空间与时间出现可观测的偏移。扭曲程度随降雨强度与持续时间上升。黑雨本身是的白光。可因为雨滴的曝光导致视野内其他地方变得很暗，被称为黑雨。同时它不会触碰到任何现实物体，只会穿过。</p>
+          <h3>黑雨现象</h3>
+          <p>黑雨本身无害，拥有“赋予”的能力。表现为无法接触、没有温度的一维质丝从天空落下。由于“雨丝”发光导致强烈曝光，区域内的其他物体仿佛失去色彩，故称黑雨。</p>
+          <p>除“雨”之外，还有形如“雪”（二维碎片）、“冰雹”（三维碎块）等特殊形式。</p>
         </div>
+
         <div class="concept-card">
-          <div class="tag">POLITY</div>
-          <h3>政体：黑雨</h3>
-          <p>人类存活所依赖的政体，名字也来自这场雨。黑雨城邦以核心区为中枢，向周围城区指令。</p>
+          <div class="tag">DISASTER</div>
+          <h3>黑雨灾害</h3>
+          <p>黑雨现象发生后的一个小时内，其区域将产生现实扭曲事件。包括气象灾害（酸雨、水银雨）、地质灾害（瞬发地震、地陷）、生物异常畸变及“实体”产生等。灾害规模与黑雨规模正相关。</p>
+          <p>如果灾害在发生一周后仍未停止，则判定为“积水区域”，需“排水部队”解决。</p>
         </div>
+
         <div class="concept-card">
-          <div class="tag">RULE I</div>
-          <h3>不可预测</h3>
-          <p>黑雨会引发现实扭曲。扭曲可能以人的意志为转移，却也不遵循稳定的规律。每一次黑雨都是一次新的观测，可能有建筑，灾害或者实体。</p>
+          <div class="tag">INTENSITY</div>
+          <h3>雨势分级</h3>
+          <p>借用气象名词解释黑雨规模：晴＜小雨＜中雨＜大雨＜暴雨＜特大暴雨。</p>
+          <p>以“降雨量”为主、“降雨范围”为辅评判。相关部门会向居民播报雨势与疏散指导，因为目前没有手段直接截断黑雨现象后的天灾。</p>
         </div>
+
         <div class="concept-card">
-          <div class="tag">RULE II</div>
-          <h3>灾难性</h3>
-          <p>黑雨可以带来灾难。灾难的规模与形式因地区而异，从局部空间错位到整片城区的现实崩解，都曾被记录在案。</p>
+          <div class="tag">SLIP INDEX</div>
+          <h3>滑移指数</h3>
+          <p>量化现实被扭曲的程度。指数越高，现实越不稳定：</p>
+          <p>
+            <strong>0~20 稳态：</strong>正常波动<br>
+            <strong>20~40 弱滑移：</strong>轻微扭曲<br>
+            <strong>40~60 中滑移：</strong>小雨/中雨后<br>
+            <strong>60~80 强滑移：</strong>大雨后，物理规则改变<br>
+            <strong>80以上 全域解离：</strong>暴雨/特大暴雨，现实完全崩解
+          </p>
         </div>
+
         <div class="concept-card">
-          <div class="tag">RULE III</div>
-          <h3>暂时性</h3>
-          <p>黑雨<strong>通常</strong>不会持续超过24小时，但是其现实扭曲造物不一定。</p>
+          <div class="tag">SUBSTANCE & ENTITIES</div>
+          <h3>实质与实体</h3>
+          <p>“实质”是与雨丝同源的不可见物质，可被“锐化”（唯心显化）。“实体”即受黑雨影响而获得现实扭曲能力的物体或生物。</p>
+          <p>无智实体根据区域人群心理显化；有智实体（现实扭曲者）根据心中所想具现能力，越认可自我越强大，但他们的存在会让周围滑移指数升高，而自身滑移指数极低。</p>
+        </div>
+
+        <div class="concept-card">
+          <div class="tag">UMBRELLA TECH</div>
+          <h3>“伞”技术</h3>
+          <p>全名“伞”全域现实稳定锚。可直接抑制“赋予”过程，降低黑雨灾害强度，但无法抑制已发生的扭曲。</p>
+          <p>装置耗能巨大（外环常因财政问题停用）。若长时间开启后突然关闭，会导致报复性黑雨。装置有负载上限（最高承载大雨，联动可达暴雨，但一处过载往往会导致全面过载）。</p>
         </div>
       </div>
     </section>
@@ -508,7 +540,7 @@ body::before{
         <div class="entry-head">
           <span class="entry-no">04-01</span>
           <h3>九龙</h3>
-          <span class="entry-en">KOWLOON</span>
+          <span class="entry-en">JIULONG</span>
         </div>
         <p class="entry-brief">
           位于都市正东方向，大崩塌后唯一没有进行“资源重组”的地区。整个外环贫富差距最小，治安最好，民众满意度最高。辅色：红、橙。
@@ -598,26 +630,103 @@ body::before{
       </div>
     </section>
 
-    <!-- 05 断裂带 -->
+    <!-- 05 断裂带 (大幅度扩充) -->
     <section class="doc-section" id="fault">
       <div class="section-label">
-        <span class="idx">05</span><h2>断裂带</h2><span class="en">THE FAULT / THE FIN CUT</span>
+        <span class="idx">05</span><h2>断裂带 · “海”</h2><span class="en">THE FAULT / THE FIN CUT</span>
       </div>
 
       <div class="region-entry">
         <div class="entry-head">
           <span class="entry-no">05-01</span>
-          <h3>断鳍带</h3>
-          <span class="entry-en">THE FIN CUT</span>
+          <h3>断裂带概述</h3>
+          <span class="entry-en">OVERVIEW</span>
         </div>
         <p class="entry-brief">
-          地表被撕开的区域。从 -50m 平面向下，空间不稳定性随深度稳步提升。
+          在“大崩塌”后，都市三分之一的环状面积沉降 500～3000m 不等，这一片沉默的都市，被称为“断裂带”。
         </p>
         <details>
           <summary>展开档案</summary>
           <div class="entry-full">
-            <p>开发人员将断鳍带比作“海”：-50m 平面即“海平面”，向下依次为光合作用层、暮光层、无光层、海沟层。越深，现实越不稳定。</p>
-            <p>断鳍带悬崖上悬挂着由各大地区联合设立的“地层研究中心”，拥有唯一一条能从“海平面”直达“海沟层”的电梯。关于各深度层的具体观测记录，仍在整理中。</p>
+            <p>断裂带在数十年间滑移指数异常波动极大，被断裂带分为内外环的都市两侧甚至无法通讯，直到二十年前断裂带上空滑移指数下降并平稳。</p>
+            <p>从海拔 -50m 处开始，滑移指数随着下降深度规律上涨，并在固定深度跃升一段。探险家们将 -50m（深度 0m）视作“海平面”，由于这里长年充斥着黑雨灾害，探险家们将断裂带比作“海”，并借用海洋相关的术语来形容各个深度层。</p>
+          </div>
+        </details>
+      </div>
+
+      <div class="region-entry">
+        <div class="entry-head">
+          <span class="entry-no">05-02</span>
+          <h3>深度分层</h3>
+          <span class="entry-en">DEPTH STRATA</span>
+        </div>
+        <p class="entry-brief">
+          随着滑移指数的跃升，断裂带被探险家划分为四个主要深度层。这里保留了大量旧时代的遗物与致命的异常现象。
+        </p>
+        <details>
+          <summary>展开档案（四层地貌）</summary>
+          <div class="entry-full">
+            <p><strong>光合作用层：</strong>残破的城市废墟，滑移指数仍在稳态区间。荒废的城市中长出了繁茂的森林，灭绝的动物在此重现。这里受现实扭曲影响较小，产业多为狩猎（稀有动物肉可卖好价钱），有价值的物品基本被回收完毕。地质研究中心与大部分探险家聚落坐落在这一层。</p>
+            <p><strong>暮光层：</strong>滑移指数跃升至中雨后水平，现实扭曲开始显现。该地区气象天灾频发，长时间阴云密布，仅有正午才有光照。此处仍有大量未回收的技术与生产资料，还有不少“实体”。探险家在此以回收高价值物资和收容“实体”为目的。</p>
+            <p><strong>无光层：</strong>自然阳光已无法照到，滑移指数飙升至暴雨后水平。因为长时间保持极高的滑移指数，该层产生了奇特的“年代现象”。探险家以回收年代切片中产生的特殊实体或物体、以及有价值的信息为主要目的。</p>
+            <p><strong>海沟层：</strong>目前人类探索至的最深处，无时无刻不处于全域解离状态。仅在穿戴特殊防护服的状态下，人类才可在其中活动。因海沟层几乎完全是非欧几何空间，目前探索进度推进困难。</p>
+          </div>
+        </details>
+      </div>
+
+      <div class="region-entry">
+        <div class="entry-head">
+          <span class="entry-no">05-03</span>
+          <h3>异常现象</h3>
+          <span class="entry-en">ANOMALIES</span>
+        </div>
+        <p class="entry-brief">
+          断裂带深处充斥着无法用常理解释的物理与空间现象，其中“年代现象”与“洋流”最为核心。
+        </p>
+        <details>
+          <summary>展开档案</summary>
+          <div class="entry-full">
+            <p><strong>年代现象：</strong>仅在无光层产生的奇特现象，表现类似于一块“异世界”的切片。探险家可以进入其中获取物资（带离后依然存在）。但切片内外的信息不互通，切片的边界像单向的屏障，外来者无法获取切片外的信息，切片内的原住民也看不到外来者。</p>
+            <p><strong>年代间隙与交错：</strong>切片与切片之间的空白地带，只有紊乱的空间，极易迷失。探险家通常通过年代切片的重叠处移动来避免迷失。</p>
+            <p><strong>年代崩塌：</strong>年代切片存在时间有限。崩溃时由外至内如盐粒溶解般消失，属于本切片的物品会一同消失，但外来物品和外来者不会被毁灭（会被直接甩到年代间隙）。</p>
+            <p><strong>洋流现象：</strong>类似于洋流一般的滑移指数规律性变动现象。表现为断裂带某一深度层的现象暂时性地延伸至别的深度层（如无光层的年代现象出现在光合作用层）。</p>
+            <p><strong>参考意象：</strong>《来自深渊》</p>
+          </div>
+        </details>
+      </div>
+
+      <div class="region-entry">
+        <div class="entry-head">
+          <span class="entry-no">05-04</span>
+          <h3>生存禁忌</h3>
+          <span class="entry-en">SURVIVAL RULES</span>
+        </div>
+        <p class="entry-brief">
+          在“海”里，最致命的往往不是怪物，而是你不经意间违反了这里的物理法则。
+        </p>
+        <details>
+          <summary>展开档案</summary>
+          <div class="entry-full">
+            <p><strong>减压病：</strong>连续快速上升高度会导致自身滑移指数异常波动。轻则肉体性质不稳定，重则当场解离。所以探险家每上升一段距离，就得原地休息以适应当前区域的滑移水平。</p>
+          </div>
+        </details>
+      </div>
+
+      <div class="region-entry">
+        <div class="entry-head">
+          <span class="entry-no">05-05</span>
+          <h3>地质研究中心</h3>
+          <span class="entry-en">GEOLOGICAL RESEARCH CENTER</span>
+        </div>
+        <p class="entry-brief">
+          由外环各势力联合设立的，针对断裂带中现象进行研究的国际机构，同时也是探险家们的“冒险者公会”。
+        </p>
+        <details>
+          <summary>展开档案</summary>
+          <div class="entry-full">
+            <p>其总部设立在海平面处的峭壁上，分部则设立在各大探险家据点中。</p>
+            <p>地质研究中心处的大电梯是唯一一个能够直达海沟层的设施。</p>
+            <p><strong>生态留白：</strong>关于断裂带生态，目前资料缺失，留白给大家自行创作。（参考《来自深渊》）</p>
           </div>
         </details>
       </div>
@@ -636,7 +745,7 @@ body::before{
           <span class="entry-en">ANACHRONISM</span>
         </div>
         <p class="entry-brief">
-          来自不同时空的空间碎片嵌入现实后形成的异常区域，常伴随“洋流”造成深度层之间的异常联通。
+          来自不同时空的空间碎片嵌入现实后形成的异常区域。（郊区不完善，之后会改一下
         </p>
         <details>
           <summary>展开档案</summary>
@@ -646,23 +755,76 @@ body::before{
           </div>
         </details>
       </div>
+    </section>
+
+    <!-- 07 中小体量组织 -->
+    <section class="doc-section" id="orgs">
+      <div class="section-label">
+        <span class="idx">07</span><h2>中小体量组织</h2><span class="en">MINOR ORGANIZATIONS</span>
+      </div>
 
       <div class="region-entry">
         <div class="entry-head">
-          <span class="entry-no">06-02</span>
-          <h3>衔尾蛇 · A.H.P</h3>
-          <span class="entry-en">OUROBOROS / A.H.P</span>
+          <span class="entry-no">07-01</span>
+          <h3>A.H.P 阿加雷斯之手计划</h3>
+          <span class="entry-en">A.H.P / AGARES'S HAND</span>
         </div>
         <p class="entry-brief">
-          活跃在未知领域的两支武装团体。衔尾蛇以摧毁核心区为目标，A.H.P 的资料尚待补全。
+          由公司战争期间北联邦训练的战争 AI“阿加雷斯”叛逃后自行组建的军事化巨型企业。其声明自身不属于任何政权（黑雨核心政府没有理它）。官方辅色：黄。
         </p>
         <details>
           <summary>展开档案</summary>
           <div class="entry-full">
-            <p>“衔尾蛇”起源不明，行动模式不固定，但所有已知行动都指向同一个方向：核心区。关于他们的组织结构和真正目的，档案中只有推测。</p>
-            <p>“A.H.P”（阿加雷斯之手）的记载更少。目前仅确认其活动范围与衔尾蛇有重叠，双方关系不明。</p>
+            <p><strong>主营业务：</strong>包括但不限于资产渗透、刺杀、情报交易、代理人战争。</p>
+            <p><strong>军事力量：</strong>该企业麾下自行组建有31个摩托化装甲师团，空中部队以“鹰”自居，而地面部队自称“鳄”。</p>
+            <p><strong>实体收容：</strong>该企业同时擅长收容“实体”，并以此为由头向外环其他政权要求“收容补贴”（实质是拍卖，实体会被暗中运输给出价最高的势力）。</p>
+            <p><strong>参考原型：</strong>《乱域》（暴力迪吧）中的 ATPS 和 ATPE 的 ProMAX 版。</p>
           </div>
         </details>
+      </div>
+
+      <div class="region-entry">
+        <div class="entry-head">
+          <span class="entry-no">07-02</span>
+          <h3>衔尾蛇</h3>
+          <span class="entry-en">OUROBOROS</span>
+        </div>
+        <p class="entry-brief">
+          一个不知为何掌握了大量异常知识的不明来源武装组织。对“实体”极其友好。官方辅色：翠绿。
+        </p>
+        <details>
+          <summary>展开档案</summary>
+          <div class="entry-full">
+            <p><strong>核心理念：</strong>其认为获得了“赐予”的人类才是抵御黑雨灾害的主力，所以开始疯狂地寻求将人类转化为“实体”的方式。</p>
+            <p><strong>行动模式：</strong>因为目前黑雨灾害是最为常见的转化方式，所以衔尾蛇经常在外环组织突袭“伞”节点的活动。</p>
+            <p><strong>武装配置：</strong>其常见的武装小组为一名现实扭曲者辅以多名特种作战人员，当然，多名现实扭曲者同时出动也有目击报告。</p>
+            <p><strong>参考原型：</strong>SCP基金会的“蛇之手”。</p>
+          </div>
+        </details>
+      </div>
+
+      <div class="region-entry">
+        <div class="entry-head">
+          <span class="entry-no">07-03</span>
+          <h3>个人事务所</h3>
+          <span class="entry-en">PERSONAL OFFICE</span>
+        </div>
+        <p class="entry-brief">
+          由于黑雨现象频发，都市内总是会有很多细节琐事（比如都市怪谈之类的）是警方无法处理的，这时候，经过官方认证的事务所便可以介入。
+        </p>
+        <details>
+          <summary>展开档案</summary>
+          <div class="entry-full">
+            <p>适合不喜欢大组织的小伙伴。你可以组建自己的小队，在都市的阴暗面中承接各种委托。</p>
+            <p><strong>参考原型：</strong>《废墟图书馆》中的收尾人事务所。</p>
+          </div>
+        </details>
+      </div>
+
+      <div class="region-entry" style="border-bottom:none; padding-bottom:0;">
+        <div class="entry-full" style="border-left:none; padding-left:0; font-family:var(--serif); color:var(--gold); font-style:italic;">
+          <p>补充：以上俩算是我写的组织参考，大家可以自行创建自己的组织喔。</p>
+        </div>
       </div>
     </section>
 
