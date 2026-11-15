@@ -288,7 +288,7 @@ const REGIONS = [
   },
   {
     id: 'jiulong',
-    name: '九龙城邦',
+    name: '九龙',
     en: 'JIULONG',
     type: 'circle',
     center: [1375, 1810], 
@@ -611,7 +611,7 @@ statusEl.textContent = `ZOOM ${map.getZoom()} · ${MAP_CONFIG.width}×${MAP_CONF
   requestAnimationFrame(frame);
 })();
 
-/* ===== 临时坐标拾取器 ===== */
+/* ===== 临时坐标拾取器 ===== 
 map.on('click', function(e) {
   const x = Math.round(e.latlng.lng);
   const y = Math.round(e.latlng.lat);
@@ -641,7 +641,7 @@ map.on('click', function(e) {
       .openOn(map);
   }
 });
-
+*/
 </script>
 
 <!-- 音频与播放器 -->

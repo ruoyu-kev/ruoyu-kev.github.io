@@ -221,7 +221,7 @@ body::before{
 
   <!-- 故事列表 -->
   <div class="stories" id="story-list">
-    <div class="story-empty" id="story-empty">// 还没有手记 · NO NOTES YET</div>
+    <!-- 由 JS 动态生成 -->
   </div>
 
   <footer class="foot">
@@ -231,12 +231,12 @@ body::before{
 
 </main>
 
-<!-- ===== 作者触发按钮（移出隐藏区域，始终可见） ===== -->
+<!-- ===== 作者触发按钮 ===== -->
 <div class="admin-bar">
   <button class="admin-trigger" id="admin-trigger" title="作者入口">✎</button>
 </div>
 
-<!-- ===== 编辑面板（默认隐藏） ===== -->
+<!-- ===== 编辑面板 ===== -->
 <div id="admin-panel">
   <div class="admin-panel">
     <h4>NEW NOTE / 新增手记</h4>
@@ -251,19 +251,55 @@ body::before{
 
 <script>
 /* =========================================================
-   作者配置：在这里修改你的密码
+   1. 静态数据区：把你复制下来的文字直接粘贴到这里！
+   格式说明：这是一个数组，每个大括号 {} 是一篇手记。
+   用逗号 , 分隔每一篇。
    ========================================================= */
-const ADMIN_PASSWORD = 'blackrain2026'; // ← 改成你自己的密码
+const STATIC_NOTES = [
+  
+  [
+  {
+    "title": "测试",
+    "body": "大概这样",
+    "date": "2026.11.06"
+  },
+  {
+    "title": "后记（没写完为什么写后记",
+    "body": "在蒻雨完成网页搭建的那个冬天，他一定会回想起六年前第一次看到阿正的摸鱼本上写下的《黑雨》。。。这个OC世界观其实六年前就开始写了，说它陪伴了我们成长也不为过。一路上有了不少，画画和写设定的经验。随着高中学业压力越来越大，不得不逐渐冷落它。但是我以前从来没有想过我会这么久没有写设定，也没有想过在不久后又有一个机会可以写出来给很多人看。\n真是感慨万分，坦坦荡荡见自己了。当然，现在这个版本也许会修改也许会保留，因为它会多多少少带有个人经历（不止我自己一个人的）。按照我之前私下计划还可能在以后给它出游戏，不知道会是什么契机。\n感谢异轨战略，TRY的各位给我的勇气和灵感。其实我还有一个OC世界观主要是我写的（没错黑雨主要设定在阿正那里）没有完善，说不准以后的以后会有可能让你们见到它，，\n就这样",
+    "date": "2026.11.07"
+  },
+  {
+    "title": "临近宣讲",
+    "body": "这个网站可以说是功能实现都由AI完成，但我又确实花了不少时间在这上面。就很奇怪，我追求效率的话早就改给大肥鱼白饭很快就能做出来，但是我居然为了省这点钱在网页端写了几十轮对话。风格，配色甚至图标都是我定好的，但是不用自己双手打出来就是有种空虚感。或许以后真的一句话就能生成一篇异轨，，，\n现在这里的图片要么是手搓要么是网图，音乐也是找素材网站，设定更是我催阿正码出来的（）。这几天没事就想想往里面加什么页面和其他效果。总之还是尽量想表现形象生动一点的同时留有很多手作的东西，这样应该算是真诚（？）。\n我第一次见到这么多有关世界观的文件，大家都做得很好。我也一直在想黑雨会不会被选上，但是都做到这一步了，选不选上都好吧。因为其他人的创意也很好，制作也很努力，我也只是做了这些天。我在之前介绍异轨战略的会开完之后我就想到了做网站，最近看来显然有人和我想到一块了。\n如果你能看到这里说明你真的在好好浏览这个网页，谢谢你。",
+    "date": "2026.11.12"
+  },
+  {
+    "title": "这是早上写的我还不知道宣讲怎么样",
+    "body": "本来想着说要拿下的话就全力拿下，现在看来还好尽全力了，，，我的天啊部长大人，我的天啊本能实验室大人，没能让你们尽兴真是太抱歉了。最后只能选一个的话还是有点遗憾呢，明明大家都很努力了。没准以后能推出更加HAPPYENDING的制度呢，，这得是以后的事了。总而言之，这次真的很磨练我了。不知道宣讲的时候领域展开是怎么样的呢？\n我的作业还在等着我去写呢，让我再摸一会鱼吧。。。",
+    "date": "2026.11.15"
+  }
+]
+  
+
+];
+
+const ADMIN_PASSWORD = 'blackrain2026'; 
 const STORAGE_KEY = 'blackrain:behind-the-scenes';
 
 /* =========================================================
-   数据存取
+   2. 数据存取：优先读你本地的修改，否则读静态数据
    ========================================================= */
 function loadNotes() {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    const local = localStorage.getItem(STORAGE_KEY);
+    if (local) {
+      // 如果你在本地用“小笔”写过东西，优先显示你本地的
+      return JSON.parse(local);
+    }
+    // 如果访客打开，本地没数据，就直接显示上面写死的 STATIC_NOTES
+    return STATIC_NOTES;
   } catch (e) {
-    return [];
+    return STATIC_NOTES;
   }
 }
 
@@ -272,7 +308,7 @@ function saveNotes(notes) {
 }
 
 /* =========================================================
-   渲染故事列表（所有访客可见）
+   3. 渲染故事列表
    ========================================================= */
 function renderNotes() {
   const list = document.getElementById('story-list');
@@ -280,7 +316,7 @@ function renderNotes() {
 
   list.innerHTML = '';
 
-  if (!notes.length) {
+  if (!notes || !notes.length) {
     const empty = document.createElement('div');
     empty.className = 'story-empty';
     empty.textContent = '// 还没有手记 · NO NOTES YET';
@@ -288,7 +324,7 @@ function renderNotes() {
     return;
   }
 
-  // 按时间倒序
+  // 按时间倒序（最新的在最上面）
   notes.slice().reverse().forEach(note => {
     const article = document.createElement('article');
     article.className = 'story';
@@ -315,7 +351,7 @@ function renderNotes() {
 }
 
 /* =========================================================
-   作者入口：点击右下角的小笔图标，弹出密码框
+   4. 作者入口与编辑逻辑
    ========================================================= */
 const adminPanel = document.getElementById('admin-panel');
 const adminTrigger = document.getElementById('admin-trigger');
@@ -326,7 +362,6 @@ let unlocked = false;
 
 adminTrigger.addEventListener('click', () => {
   if (unlocked) {
-    // 已解锁时，点击图标切换编辑面板显示
     adminPanel.classList.toggle('is-unlocked');
     return;
   }
@@ -343,7 +378,6 @@ adminTrigger.addEventListener('click', () => {
   }
 });
 
-/* 保存手记 */
 document.getElementById('note-save').addEventListener('click', () => {
   const title = noteTitle.value.trim();
   const body = noteBody.value.trim();
@@ -353,7 +387,7 @@ document.getElementById('note-save').addEventListener('click', () => {
     return;
   }
 
-  const notes = loadNotes();
+  const notes = loadNotes(); // 读取现有数据（包含静态数据和本地数据）
   const now = new Date();
   const dateStr = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
 
@@ -363,8 +397,8 @@ document.getElementById('note-save').addEventListener('click', () => {
     date: dateStr
   });
 
-  saveNotes(notes);
-  renderNotes();
+  saveNotes(notes); // 保存到本地缓存
+  renderNotes(); // 重新渲染
 
   // 清空并收起
   noteTitle.value = '';
@@ -372,7 +406,6 @@ document.getElementById('note-save').addEventListener('click', () => {
   adminPanel.classList.remove('is-unlocked');
 });
 
-/* 取消 / 收起 */
 document.getElementById('note-cancel').addEventListener('click', () => {
   adminPanel.classList.remove('is-unlocked');
 });
@@ -381,13 +414,9 @@ document.getElementById('note-cancel').addEventListener('click', () => {
 renderNotes();
 </script>
 
-<button id="bgm-toggle" class="bgm-toggle" aria-label="播放或暂停背景音乐">
-  <svg class="icon-play" viewBox="0 0 24 24" width="18" height="18"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
-  <svg class="icon-pause" viewBox="0 0 24 24" width="18" height="18"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" fill="currentColor"/></svg>
-</button>
-
-<audio id="bgm-player" src="assets/bgm.opus" loop preload="auto"></audio>
-<audio id="rain-player" src="assets/rain-loop.opus" loop preload="auto"></audio>
+<!-- 引用外部播放器 -->
+<audio id="bgm-player" loop preload="auto"></audio>
+<audio id="rain-player" src="assets/music/rain-loop.opus" loop preload="auto"></audio>
 <script src="assets/player.js" defer></script>
 
 </body>
